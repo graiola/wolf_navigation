@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <arg name="robot_name" default="spot"/>
+    <arg name="internal_wrench" default="false" />
+    <arg name="world_name" default="empty" />
+    <arg name="task_period" default="0.001" />
+    <arg name="gazebo_debug" default="false" />
+    <arg name="gazebo_gui" default="false" />
+    <arg name="full_gui" default="false" />
+    <arg name="input_device" default="twist" />
+    <arg name="gazebo" default="true" />
+    <arg name="engine" default="ode" />
+
+    <!-- Convert from PointCould2 to Laserscan -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+        <remap from="cloud_in" to="/velodyne_pointcloud"/>
+    </node>
+
+    <!-- Run hector slam -->
+    <include file="$(find hector_mapping)/launch/mapping_default.launch">
+        <arg name="base_frame" default="world"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="odom_frame" default="world"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="pub_map_odom_transform" default="true"/>
+        <arg name="scan_topic" default="scan"/>
+    </include>
+
+    <!-- Run move base -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <rosparam file="$(find wolf_navigation)/params/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find wolf_navigation)/params/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find wolf_navigation)/params/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find wolf_navigation)/params/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find wolf_navigation)/params/base_local_planner_params.yaml" command="load" />
+        <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
+    </node>
+
+    <!-- Launch the controller -->
+    <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch">
+        <arg name="sensors" value="true" />
+        <arg name="robot_name" value="$(arg robot_name)" />
+        <arg name="internal_wrench" value="$(arg internal_wrench)" />
+        <arg name="world_name" value="$(arg world_name)" />
+        <arg name="task_period" value="$(arg task_period)" />
+        <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
+        <arg name="full_gui" value="$(arg full_gui)"/>
+        <arg name="gazebo_debug" value="$(arg gazebo_debug)"/>
+        <arg name="gazebo" default="$(arg gazebo)" />
+        <arg name="input_device" value="$(arg input_device)"/>
+        <arg name="engine" value="$(arg engine)"/>
+    </include>
+
+</launch>

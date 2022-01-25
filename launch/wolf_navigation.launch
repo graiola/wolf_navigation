@@ -31,6 +31,7 @@
         <rosparam file="$(find wolf_navigation)/params/local_costmap_params.yaml" command="load" />
         <rosparam file="$(find wolf_navigation)/params/global_costmap_params.yaml" command="load" />
         <rosparam file="$(find wolf_navigation)/params/base_local_planner_params.yaml" command="load" />
+        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>
 

@@ -39,9 +39,9 @@
     <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch">
         <arg name="sensors" value="true" />
         <arg name="robot_name" value="$(arg robot_name)" />
-        <arg name="internal_wrench" value="$(arg internal_wrench)" />
         <arg name="world_name" value="$(arg world_name)" />
         <arg name="task_period" value="$(arg task_period)" />
+        <arg name="rqt_gui" value="false"/>
         <arg name="rviz_gui" value="false"/>
         <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
         <arg name="gazebo_debug" value="$(arg gazebo_debug)"/>

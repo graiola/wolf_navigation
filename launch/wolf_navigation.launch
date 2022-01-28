@@ -10,6 +10,7 @@
     <arg name="input_device" default="twist" />
     <arg name="gazebo" default="true" />
     <arg name="engine" default="ode" />
+    <arg name="launch_controller" default="true" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
@@ -36,7 +37,7 @@
     </node>
 
     <!-- Launch the controller -->
-    <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch">
+    <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch" if="$(arg launch_controller)" >
         <arg name="sensors" value="true" />
         <arg name="robot_name" value="$(arg robot_name)" />
         <arg name="world_name" value="$(arg world_name)" />

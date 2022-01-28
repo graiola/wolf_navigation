@@ -2,7 +2,7 @@
 <launch>
 
     <arg name="robot_name" default="spot"/>
-    <arg name="internal_wrench" default="false" />
+    <arg name="launch_controller" default="true" />
     <arg name="world_name" default="empty" />
     <arg name="task_period" default="0.001" />
     <arg name="gazebo_debug" default="false" />
@@ -13,7 +13,7 @@
 
     <include file="$(find wolf_navigation)/launch/wolf_navigation.launch">
         <arg name="robot_name" value="$(arg robot_name)"/>
-        <arg name="internal_wrench" value="$(arg internal_wrench)" />
+        <arg name="launch_controller" value="$(arg launch_controller)" />
         <arg name="world_name" value="$(arg world_name)" />
         <arg name="task_period" value="$(arg task_period)" />
         <arg name="gazebo_debug" value="$(arg gazebo_debug)" />

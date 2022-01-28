@@ -8,12 +8,12 @@ Federico Rollo, Gennaro Raiola
 
 ## Dependencies:
 
-pointcloud-to-laserscan
-velodyne-laserscan
-velodyne-pointcloud
-velodyne-gazebo-plugins
-velodyne-description
-hector-mapping
-move-base
-explore-lite
-dwa-local-planner
+- pointcloud-to-laserscan
+- velodyne-laserscan
+- velodyne-pointcloud
+- velodyne-gazebo-plugins
+- velodyne-description
+- hector-mapping
+- move-base
+- explore-lite
+- dwa-local-planner

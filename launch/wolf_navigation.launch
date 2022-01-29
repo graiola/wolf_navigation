@@ -12,17 +12,28 @@
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />
 
+    <arg name="mapping" default="false" />
+    <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
+
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
         <remap from="cloud_in" to="/velodyne_pointcloud"/>
     </node>
 
     <!-- Run hector slam -->
-    <include file="$(find hector_mapping)/launch/mapping_default.launch">
+    <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">
         <arg name="base_frame" default="world"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
         <arg name="odom_frame" default="world"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
         <arg name="pub_map_odom_transform" default="true"/>
         <arg name="scan_topic" default="scan"/>
+    </include>
+
+    <!--      run AMCL localization-->
+    <include file="$(find wolf_navigation)/launch/wolf_localization.launch" unless="$(arg mapping)">
+        <arg name="base_frame" default="odom"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="odom_frame" default="odom"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="scan_topic" default="scan"/>
+        <arg name="map_file" default="$(arg map_file)" />
     </include>
 
     <!-- Run move base -->

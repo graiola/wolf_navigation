@@ -28,10 +28,10 @@
         <arg name="scan_topic" default="scan"/>
     </include>
 
-    <!--      run AMCL localization-->
+    <!-- run AMCL localization -->
     <include file="$(find wolf_navigation)/launch/wolf_localization.launch" unless="$(arg mapping)">
-        <arg name="base_frame" default="odom"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
-        <arg name="odom_frame" default="odom"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="base_frame" default="world"/>
+        <arg name="odom_frame" default="odom"/>
         <arg name="scan_topic" default="scan"/>
         <arg name="map_file" default="$(arg map_file)" />
     </include>

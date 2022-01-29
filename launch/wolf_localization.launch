@@ -5,7 +5,8 @@
     <arg name="map_topic" default="map" />
     <arg name="scan_topic" default="scan" />
     <arg name="odom_frame" default="odom"/>
-    <arg name="base_frame" default="odom"/>
+    <arg name="base_frame" default="world"/>
+
     <arg name="world_name" default="empty" />
     <arg name="x_init_pose" default="0"/>
     <arg name="y_init_pose" default="0"/>
@@ -13,16 +14,22 @@
     <arg name="yaw_init_pose" default="0"/>
     <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
 
-    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+
+    <!--Map loading -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" respawn="false">
         <param name="frame_id" value="$(arg global_frame)"/>
     </node>
 
+    <!-- start odom node -->
+    <node name="odom_publisher_node" pkg="wolf_navigation" type="odom_publisher_node" output="screen"  respawn="false" />
+
+    <!-- AMCL -->
     <node pkg="amcl" type="amcl" name="amcl" output="screen">
         <remap from="scan" to="$(arg scan_topic)"/>
         <remap from="map" to="$(arg map_topic)"/>
 
         <!-- Publish scans from best pose at a max of 10 Hz -->
-<!--         <param name="use_map_topic" value="false"/> -->
+        <param name="use_map_topic" value="false"/>
         <param name="odom_model_type" value="diff"/><!--omni-->
         <param name="odom_alpha5" value="0.1"/>
         <param name="transform_tolerance" value="0.2" />
@@ -49,10 +56,14 @@
         <param name="laser_likelihood_max_dist" value="2.0"/>
         <param name="update_min_d" value="0.2"/>
         <param name="update_min_a" value="0.5"/>
+
+
         <param name="odom_frame_id" value="$(arg odom_frame)"/>
         <param name="base_frame_id" value="$(arg base_frame)"/>
         <param name="global_frame_id" value="$(arg global_frame)"/>
         <param name="resample_interval" value="1"/>
+
+
         <param name="transform_tolerance" value="0.1"/>
         <param name="recovery_alpha_slow" value="0.0"/>
         <param name="recovery_alpha_fast" value="0.0"/>

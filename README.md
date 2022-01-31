@@ -17,3 +17,5 @@ Federico Rollo, Gennaro Raiola
 - move-base
 - explore-lite
 - dwa-local-planner
+- amcl
+- map-server

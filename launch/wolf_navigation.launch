@@ -2,7 +2,6 @@
 <launch>
 
     <arg name="robot_name" default="spot"/>
-    <arg name="internal_wrench" default="false" />
     <arg name="world_name" default="empty" />
     <arg name="task_period" default="0.001" />
     <arg name="gazebo_debug" default="false" />
@@ -64,6 +63,10 @@
 
     <!-- rviz -->
     <node name="wolf_rviz" pkg="rviz" type="rviz"
-          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"/>
+          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"
+          if="$(arg mapping)"/>
+    <node name="wolf_rviz" pkg="rviz" type="rviz"
+          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav_amcl.rviz')"
+          unless="$(arg mapping)"/>
 
 </launch>

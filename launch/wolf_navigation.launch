@@ -65,8 +65,9 @@
     <node name="wolf_rviz" pkg="rviz" type="rviz"
           args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"
           if="$(arg mapping)"/>
+
     <node name="wolf_rviz" pkg="rviz" type="rviz"
-          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav_amcl.rviz')"
+          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav_loc.rviz')"
           unless="$(arg mapping)"/>
 
 </launch>

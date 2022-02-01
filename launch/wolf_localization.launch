@@ -5,7 +5,7 @@
     <arg name="map_topic" default="map" />
     <arg name="scan_topic" default="scan" />
     <arg name="odom_frame" default="odom"/>
-    <arg name="base_frame" default="world"/>
+    <arg name="base_frame" default="base_footprint"/>
 
     <arg name="world_name" default="empty" />
     <arg name="x_init_pose" default="0"/>

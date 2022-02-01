@@ -10,7 +10,7 @@ void convertOdom(const nav_msgs::Odometry::ConstPtr& odom)
   //first, we'll publish the transform over tf
   _odom_trans.header.stamp = odom->header.stamp;
   _odom_trans.header.frame_id = "odom";
-  _odom_trans.child_frame_id = "world";
+  _odom_trans.child_frame_id = "base_footprint";
 
   _odom_trans.transform.translation.x = odom->pose.pose.position.x;
   _odom_trans.transform.translation.y = odom->pose.pose.position.y;

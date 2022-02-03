@@ -21,10 +21,11 @@
         <arg name="input_device" value="$(arg input_device)" />
         <arg name="gazebo" value="$(arg gazebo)" />
         <arg name="engine" value="$(arg engine)" />
+        <arg name="mapping" value="true" />
     </include>
 
     <node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
-      <param name="robot_base_frame" value="base_link"/>
+      <param name="robot_base_frame" value="base_footprint"/>
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>
       <param name="visualize" value="true"/>

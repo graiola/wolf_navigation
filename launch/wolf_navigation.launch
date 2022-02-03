@@ -21,8 +21,8 @@
 
     <!-- Run hector slam -->
     <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">
-        <arg name="base_frame" default="base_footprint"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
-        <arg name="odom_frame" default="odom"/> <!-- FIXME it should be base_footprint add a new frame in odomPublisher so that we don't collide with GT -->
+        <arg name="base_frame" default="base_footprint"/>
+        <arg name="odom_frame" default="base_footprint"/>
         <arg name="pub_map_odom_transform" default="true"/>
         <arg name="scan_topic" default="scan"/>
     </include>

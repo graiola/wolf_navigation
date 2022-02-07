@@ -5,6 +5,7 @@
   <description>
         This package provides navigation functionalities to WoLF
   </description>
+  <maintainer email="rollo.f96@gmail.com">Federico Rollo</maintainer>
   <maintainer email="gennaro.raiola@gmail.com">Gennaro Raiola</maintainer>
   <author>Gennaro Raiola</author>
   <license>GNU General Public License v3.0</license>

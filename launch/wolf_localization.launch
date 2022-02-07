@@ -20,6 +20,9 @@
         <param name="frame_id" value="$(arg global_frame)"/>
     </node>
 
+    <!--load odom params-->
+    <rosparam command="load" file="$(find wolf_navigation)/params/odom_params.yaml" ns="odometry_publisher"/>
+
     <!-- start odom node -->
     <node name="odom_publisher_node" pkg="wolf_navigation" type="odom_publisher_node" output="screen"  respawn="false" />
 

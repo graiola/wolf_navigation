@@ -7,7 +7,6 @@
     <arg name="task_period" default="0.001" />
     <arg name="gazebo_debug" default="false" />
     <arg name="gazebo_gui" default="false" />
-    <arg name="input_device" default="twist" />
     <arg name="gazebo" default="true" />
     <arg name="engine" default="ode" />
 
@@ -18,13 +17,14 @@
         <arg name="task_period" value="$(arg task_period)" />
         <arg name="gazebo_debug" value="$(arg gazebo_debug)" />
         <arg name="gazebo_gui" value="$(arg gazebo_gui)" />
-        <arg name="input_device" value="$(arg input_device)" />
+        <arg name="input_device" value="twist" />
         <arg name="gazebo" value="$(arg gazebo)" />
         <arg name="engine" value="$(arg engine)" />
+        <arg name="mapping" value="true" />
     </include>
 
     <node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
-      <param name="robot_base_frame" value="base_link"/>
+      <param name="robot_base_frame" value="base_footprint"/>
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>
       <param name="visualize" value="true"/>

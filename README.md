@@ -13,6 +13,8 @@ The package is composed by three main feature:
 3) Exploration (Mapping with autonomous searching for new spaces)
 
 ### 1) Navigation
+![spot_nav](https://user-images.githubusercontent.com/76060218/153372357-cba270e2-ee80-4032-a45b-91c43fe6bcfb.png)
+
 To perform navigation you need a map already done and saved. In order to use it you'll need to load the gazebo 
 environment using the ```world_name:=``` argument otherwise an empty world will be loaded
 
@@ -25,6 +27,8 @@ roslaunch wolf_navigation wolf_navigation world_name:=YOUR_WORLD_NAME
 ```
 
 ### 2) Mapping
+![spot_map](https://user-images.githubusercontent.com/76060218/153372856-dcd3450b-5202-4e4e-8b88-dd97eb1b3142.png)
+
 To perform mapping you need at least a gazebo world to be loaded, and you have to load it with the ```world_name:=``` 
 argument. 
 

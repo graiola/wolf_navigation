@@ -5,9 +5,9 @@
   <description>
         This package provides navigation functionalities to WoLF
   </description>
-  <maintainer email="rollo.f96@gmail.com">Federico Rollo</maintainer>
   <maintainer email="gennaro.raiola@gmail.com">Gennaro Raiola</maintainer>
-  <license>BSD</license>
+  <author>Gennaro Raiola</author>
+  <license>GNU General Public License v3.0</license>
   
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>wolf_controller</run_depend>
@@ -19,8 +19,8 @@
  <build_depend>roscpp</build_depend>
  <build_depend>std_msgs</build_depend>
  <build_depend>nav_msgs</build_depend>
- <build_depend>tf</build_depend>-->
-
+ <build_depend>tf</build_depend>
+ -->
 
  <run_depend>roscpp</run_depend>
  <run_depend>std_msgs</run_depend>

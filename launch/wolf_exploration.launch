@@ -9,6 +9,7 @@
     <arg name="gazebo_gui" default="false" />
     <arg name="gazebo" default="true" />
     <arg name="engine" default="ode" />
+    <arg name="input_device" default="keyboard" />
 
     <include file="$(find wolf_navigation)/launch/wolf_navigation.launch">
         <arg name="robot_name" value="$(arg robot_name)"/>
@@ -17,7 +18,7 @@
         <arg name="task_period" value="$(arg task_period)" />
         <arg name="gazebo_debug" value="$(arg gazebo_debug)" />
         <arg name="gazebo_gui" value="$(arg gazebo_gui)" />
-        <arg name="input_device" value="twist" />
+        <arg name="input_device" value="$(arg input_device)" />
         <arg name="gazebo" value="$(arg gazebo)" />
         <arg name="engine" value="$(arg engine)" />
         <arg name="mapping" value="true" />

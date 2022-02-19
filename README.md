@@ -21,7 +21,7 @@ environment using the ```world_name:=``` argument otherwise an empty world will 
 
 To launch the navigation mode type in the terminal:
 ```
-roslaunch wolf_navigation wolf_navigation world_name:=YOUR_WORLD_NAME
+roslaunch wolf_navigation wolf_navigation.launch world_name:=YOUR_WORLD_NAME
 ```
 #### 2) Mapping:
 
@@ -32,7 +32,7 @@ argument.
 
 To launch the mapping mode type in the terminal:
 ```
-roslaunch wolf_navigation wolf_navigation world_name:=YOUR_WORLD_NAME mapping:=true
+roslaunch wolf_navigation wolf_navigation.launch world_name:=YOUR_WORLD_NAME mapping:=true
 ```
 
 Once you have finished mapping your environment, or you are satisfied with your work, save your map in the ```maps```
@@ -49,7 +49,7 @@ This module is dependent on the mapping one, so you have the same necessity of t
 
 To launch the exploration mode type in the terminal:
 ```
-roslaunch wolf_navigation wolf_exploration world_name:=YOUR_WORLD_NAME
+roslaunch wolf_navigation wolf_exploration.launch world_name:=YOUR_WORLD_NAME
 ```
 
 #### Notes:

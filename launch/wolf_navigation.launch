@@ -6,7 +6,7 @@
     <arg name="task_period" default="0.001" />
     <arg name="gazebo_debug" default="false" />
     <arg name="gazebo_gui" default="false" />
-    <arg name="input_device" default="twist" />
+    <arg name="input_device" default="keyboard" />
     <arg name="gazebo" default="true" />
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />

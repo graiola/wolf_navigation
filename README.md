@@ -84,5 +84,7 @@ sudo apt-get install ros-${ROS_DISTRO}-pointcloud-to-laserscan \
                      ros-${ROS_DISTRO}-move-base               \
                      ros-${ROS_DISTRO}-explore-lite            \
                      ros-${ROS_DISTRO}-dwa-local-planner       \
+                     ros-${ROS_DISTRO}-map-server              \
+                     ros-${ROS_DISTRO}-amcl                    \
                      -y
 ```

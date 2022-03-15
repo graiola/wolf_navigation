@@ -1,4 +1,4 @@
-odom_sub_topic: "/t265/odom"
-odom_topic: "/odom"
-odom_topic_child: "/base_footprint"
-ros_rate: 10.0
+tracking_camera_topic: "/t265/odom"
+odom_frame_id: "odom"
+tracking_camera_frame_id: "t265_odom_frame"
+base_footprint_frame_id: "base_footprint"

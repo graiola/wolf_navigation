@@ -65,7 +65,10 @@ void callback(const nav_msgs::Odometry::ConstPtr& odom_T_tracking_camera)
   _handler->odom_msg_.pose.pose.position.y  = _handler->transform_msg_.transform.translation.y;
   _handler->odom_msg_.pose.pose.position.z  = _handler->transform_msg_.transform.translation.z;
   _handler->odom_msg_.pose.pose.orientation = _handler->transform_msg_.transform.rotation;
-  _handler->odom_msg_.twist                 = odom_T_tracking_camera->twist; // FIXME we need to rotate that
+
+  // odom_v_basefoot_print = basefoot_print_R_tracking_camera * v_tracking_camera + basefoot_print_S_tracking_camera * p_tracking_camera
+  // odom_omega_basefoot_print = basefoot_print_R_tracking_camera * omega_tracking_camera
+  _handler->odom_msg_.twist                 = odom_T_tracking_camera->twist;  // FIXME
   _handler->odom_msg_.pose.covariance       = odom_T_tracking_camera->pose.covariance; // Use the same covariance of the tracking camera
   _handler->odom_publisher_.publish(_handler->odom_msg_);
 }

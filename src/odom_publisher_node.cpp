@@ -24,7 +24,7 @@ struct RosTransformHandler {
     tf2_ros::TransformBroadcaster _br;
 };
 
-RosTransformHandler::Ptr _data;
+static RosTransformHandler::Ptr _handler;
 
 // The tracking camera provides us the following transform odom_T_tracking_camera
 // we need to create: odom_T_basefoot_print = odom_T_tracking_camera * tracking_camera_T_basefoot_print
@@ -33,46 +33,27 @@ void callback(const nav_msgs::Odometry::ConstPtr& odom_T_tracking_camera)
 
   try
   {
-    //auto T = _data->_tf_buffer.lookupTransform(_base_footprint_frame_id,_tracking_camera_frame_id,ros::Time(0));
-    //_data->_tracking_camera_T_basefoot_print.setOrigin(tf2::Vector3(T.transform.translation.x,T.transform.translation.y,T.transform.translation.z));
-    //_data->_tracking_camera_T_basefoot_print.setRotation(tf2::Quaternion(T.transform.rotation.x,T.transform.rotation.y,T.transform.rotation.z,T.transform.rotation.w));
-    tf2::fromMsg(_data->_tf_buffer.lookupTransform(_base_footprint_frame_id,_tracking_camera_frame_id,ros::Time(0)),_data->_tracking_camera_T_basefoot_print);
-
-    //_data->_tracking_camera_T_basefoot_print.setOrigin(tf2::Vector3(_data->_tracking_camera_T_basefoot_print.getOrigin().getX(),
-    //                                                                _data->_tracking_camera_T_basefoot_print.getOrigin().getY(),
-    //                                                                _data->_tracking_camera_T_basefoot_print.getOrigin().getX());
+    tf2::fromMsg(_handler->_tf_buffer.lookupTransform(_tracking_camera_frame_id,_base_footprint_frame_id,ros::Time(0)),_handler->_tracking_camera_T_basefoot_print);
   }
   catch (tf2::TransformException &ex)
   {
     ROS_WARN("%s",ex.what());
   }
 
-  _data->_odom_T_tracking_camera.setOrigin(tf2::Vector3(odom_T_tracking_camera->pose.pose.position.x,odom_T_tracking_camera->pose.pose.position.y,odom_T_tracking_camera->pose.pose.position.z));
-  _data->_odom_T_tracking_camera.setRotation(tf2::Quaternion(odom_T_tracking_camera->pose.pose.orientation.x,odom_T_tracking_camera->pose.pose.orientation.y,odom_T_tracking_camera->pose.pose.orientation.z,odom_T_tracking_camera->pose.pose.orientation.w));
+  _handler->_odom_T_tracking_camera.setOrigin(tf2::Vector3(odom_T_tracking_camera->pose.pose.position.x,odom_T_tracking_camera->pose.pose.position.y,odom_T_tracking_camera->pose.pose.position.z));
+  _handler->_odom_T_tracking_camera.setRotation(tf2::Quaternion(odom_T_tracking_camera->pose.pose.orientation.x,odom_T_tracking_camera->pose.pose.orientation.y,odom_T_tracking_camera->pose.pose.orientation.z,odom_T_tracking_camera->pose.pose.orientation.w));
 
-  //_odom_T_basefoot_print.transform.translation.x = odom->pose.pose.position.x;
-  //_odom_T_basefoot_print.transform.translation.y = odom->pose.pose.position.y;
-  //_odom_T_basefoot_print.transform.translation.z = 0; // not set to odom->pose.pose.position.z because during stand up the robot fly
-  //_odom_T_basefoot_print.transform.rotation = odom->pose.pose.orientation;
+  _handler->_odom_T_basefoot_print.mult(_handler->_odom_T_tracking_camera,_handler->_tracking_camera_T_basefoot_print);
 
-  _data->_odom_T_basefoot_print.mult(_data->_odom_T_tracking_camera,_data->_tracking_camera_T_basefoot_print);
+  auto T = tf2::toMsg(_handler->_odom_T_basefoot_print);
 
-  //geometry_msgs::TransformStamped T;
-  //T.transform  = tf2::toMsg(_data->_odom_T_basefoot_print.inverse());
-  //T.header.seq++;
-  //T.header.stamp = ros::Time::now();
-  //T.header.frame_id = _base_footprint_frame_id;
-  //T.child_frame_id = _odom_frame_id;
-
-  auto T = tf2::toMsg(_data->_odom_T_basefoot_print);
   T.header.seq++;
   T.header.stamp = ros::Time::now();
   T.header.frame_id = _odom_frame_id;
   T.child_frame_id = _base_footprint_frame_id;
 
-  _data->_br.sendTransform(T);
+  _handler->_br.sendTransform(T);
 }
-
 
 int main(int argc, char** argv)
 {
@@ -90,7 +71,7 @@ int main(int argc, char** argv)
   n.getParam("base_footprint_frame_id", _base_footprint_frame_id);
   n.getParam("odom_frame_id", _odom_frame_id);
 
-  _data = std::make_shared<RosTransformHandler>();
+  _handler = std::make_shared<RosTransformHandler>();
 
   // initialize odom subscriber
   ros::Subscriber tracking_camera_sub = n.subscribe(tracking_camera_topic, 20, callback);

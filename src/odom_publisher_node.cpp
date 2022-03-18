@@ -4,6 +4,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <nav_msgs/Odometry.h>
 
 static std::string _tracking_camera_frame_id;
@@ -16,15 +17,20 @@ struct RosTransformHandler {
 
     RosTransformHandler(ros::NodeHandle& n, const std::string& odom_topic = "/odom"): tf_listener_(tf_buffer_) {odom_publisher_ = n.advertise<nav_msgs::Odometry>(odom_topic,20);}
 
-    tf2::Stamped<tf2::Transform> tracking_camera_T_basefoot_print_;
-    tf2::Stamped<tf2::Transform> odom_T_tracking_camera_;
-    tf2::Stamped<tf2::Transform> odom_T_basefoot_print_;
+    //tf2::Stamped<tf2::Transform> tracking_camera_T_basefoot_print_;
+    //tf2::Stamped<tf2::Transform> odom_T_tracking_camera_;
+    //tf2::Stamped<tf2::Transform> odom_T_basefoot_print_;
     nav_msgs::Odometry odom_msg_;
     geometry_msgs::TransformStamped transform_msg_;
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
     tf2_ros::TransformBroadcaster tf_broadcaster_;
     ros::Publisher odom_publisher_;
+
+    Eigen::Isometry3d tracking_camera_T_basefoot_print_;
+    Eigen::Isometry3d odom_T_tracking_camera_;
+    Eigen::Isometry3d odom_T_basefoot_print_;
+
 };
 
 static RosTransformHandler::Ptr _handler;
@@ -36,23 +42,34 @@ void callback(const nav_msgs::Odometry::ConstPtr& odom_T_tracking_camera)
 { 
   try
   {
-    tf2::fromMsg(_handler->tf_buffer_.lookupTransform(_tracking_camera_frame_id,_base_footprint_frame_id,ros::Time(0)),_handler->tracking_camera_T_basefoot_print_);
+    _handler->tracking_camera_T_basefoot_print_ = tf2::transformToEigen(_handler->tf_buffer_.lookupTransform(_tracking_camera_frame_id,_base_footprint_frame_id,ros::Time(0)));
   }
   catch (tf2::TransformException &ex)
   {
     ROS_WARN("%s",ex.what());
   }
 
-  _handler->odom_T_tracking_camera_.setOrigin(tf2::Vector3(odom_T_tracking_camera->pose.pose.position.x,odom_T_tracking_camera->pose.pose.position.y,odom_T_tracking_camera->pose.pose.position.z));
-  _handler->odom_T_tracking_camera_.setRotation(tf2::Quaternion(odom_T_tracking_camera->pose.pose.orientation.x,odom_T_tracking_camera->pose.pose.orientation.y,odom_T_tracking_camera->pose.pose.orientation.z,odom_T_tracking_camera->pose.pose.orientation.w));
+  //_handler->odom_T_tracking_camera_.setOrigin(tf2::Vector3(odom_T_tracking_camera->pose.pose.position.x,odom_T_tracking_camera->pose.pose.position.y,odom_T_tracking_camera->pose.pose.position.z));
+  //_handler->odom_T_tracking_camera_.setRotation(tf2::Quaternion(odom_T_tracking_camera->pose.pose.orientation.x,odom_T_tracking_camera->pose.pose.orientation.y,odom_T_tracking_camera->pose.pose.orientation.z,odom_T_tracking_camera->pose.pose.orientation.w));
+  //_handler->odom_T_basefoot_print_.mult(_handler->odom_T_tracking_camera_,_handler->tracking_camera_T_basefoot_print_);
 
-  _handler->odom_T_basefoot_print_.mult(_handler->odom_T_tracking_camera_,_handler->tracking_camera_T_basefoot_print_);
+  tf2::convert(odom_T_tracking_camera,_handler->odom_T_tracking_camera_);
+
+  //_handler->odom_T_tracking_camera_.translation().x() = odom_T_tracking_camera->pose.pose.position.x;
+  //_handler->odom_T_tracking_camera_.translation().y() = odom_T_tracking_camera->pose.pose.position.y;
+  //_handler->odom_T_tracking_camera_.translation().z() = odom_T_tracking_camera->pose.pose.position.z;
+  //_handler->odom_T_tracking_camera_.linear().x() = odom_T_tracking_camera->pose.pose.orientation.x;
+  //_handler->odom_T_tracking_camera_.linear().y() = odom_T_tracking_camera->pose.pose.orientation.y;
+  //_handler->odom_T_tracking_camera_.linear().z() = odom_T_tracking_camera->pose.pose.orientation.z;
+  //_handler->odom_T_tracking_camera_.linear().w() = odom_T_tracking_camera->pose.pose.orientation.w;
+
+  _handler->odom_T_basefoot_print_ = _handler->odom_T_tracking_camera_ * _handler->tracking_camera_T_basefoot_print_;
 
   // Get current ROS time
   _t = ros::Time::now();
 
   // Publish TF msg
-  _handler->transform_msg_ = tf2::toMsg(_handler->odom_T_basefoot_print_);
+  tf2::convert(_handler->odom_T_basefoot_print_,_handler->transform_msg_.transform);
   _handler->transform_msg_.header.seq++;
   _handler->transform_msg_.header.stamp = _t;
   _handler->transform_msg_.header.frame_id = _odom_frame_id;

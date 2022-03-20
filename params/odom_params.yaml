@@ -1,4 +1,4 @@
-tracking_camera_topic: "/t265/odom"
+trackingcamera_topic: "/t265/odom"
 odom_frame_id: "odom"
-tracking_camera_frame_id: "t265_odom_frame"
-base_footprint_frame_id: "base_footprint"
+trackingcamera_frame_id: "t265_odom_frame"
+basefootprint_frame_id: "base_footprint"

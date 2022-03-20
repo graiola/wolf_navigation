@@ -61,6 +61,7 @@ void callback(const nav_msgs::Odometry::ConstPtr& odom_T_tracking_camera)
 
   // Publish odom msg
   _handler->odom_msg_.header                = _handler->transform_msg_.header;
+  _handler->odom_msg_.child_frame_id        = _handler->transform_msg_.child_frame_id;
   _handler->odom_msg_.pose.pose.position.x  = _handler->transform_msg_.transform.translation.x;
   _handler->odom_msg_.pose.pose.position.y  = _handler->transform_msg_.transform.translation.y;
   _handler->odom_msg_.pose.pose.position.z  = _handler->transform_msg_.transform.translation.z;

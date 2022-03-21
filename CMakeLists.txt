@@ -24,11 +24,14 @@ include_directories(
 add_executable(odom_publisher_node src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
-
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   PATTERN ".svn" EXCLUDE)
 
 install(DIRECTORY params/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/params
+  PATTERN ".svn" EXCLUDE)
+
+install(DIRECTORY maps/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/maps
   PATTERN ".svn" EXCLUDE)

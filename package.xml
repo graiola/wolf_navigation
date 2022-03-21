@@ -11,23 +11,17 @@
   <license>GNU General Public License v3.0</license>
   
   <buildtool_depend>catkin</buildtool_depend>
+
   <run_depend>wolf_controller</run_depend>
   <run_depend>move_base</run_depend>
   <run_depend>hector_mapping</run_depend>
   <run_depend>pointcloud_to_laserscan</run_depend>
 
-<!--
- <build_depend>roscpp</build_depend>
- <build_depend>std_msgs</build_depend>
- <build_depend>nav_msgs</build_depend>
- <build_depend>tf</build_depend>
- -->
-
- <run_depend>roscpp</run_depend>
- <run_depend>std_msgs</run_depend>
- <run_depend>geometry_msgs</run_depend>
- <run_depend>nav_msgs</run_depend>
- <run_depend>tf</run_depend>
-
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_eigen</build_depend>
 
 </package>

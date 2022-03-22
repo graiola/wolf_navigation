@@ -22,14 +22,7 @@
  * Info about the odometry for the ROS navigation stack can be found here: http://wiki.ros.org/navigation/Tutorials/RobotSetup/Odom
  */
 
-#include <ros/ros.h>
-#include <tf2/transform_datatypes.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_eigen/tf2_eigen.h>
-#include <nav_msgs/Odometry.h>
+
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 
@@ -38,7 +31,6 @@ static std::string _trackingcamera_frame_id = "";
 static std::string _base_footprint_frame_id = "";
 static std::string _odom_frame_id = "";
 static bool _twist_in_odom_frame = true; // By default, the libgazebo_ros_p3d plugin provides the twist wrt odom while move_base wants the twist defined wrt child_frame_id
-boost::shared_ptr<OdomEstimatorType> sync_;
 
 
 struct RosTransformHandler {

@@ -39,7 +39,7 @@ int main(int argc, char** argv)
   bool twist_in_local_frame;
   n.getParam("trackingcamera_topics", trackingcamera_topics);
   n.getParam("basefootprint_frame_id", basefootprint_frame_id);
-  n.getParam("twist_in_odom_frame", twist_in_local_frame);
+  n.getParam("twist_in_local_frame", twist_in_local_frame);
   n.getParam("odom_output_topic",odom_output_topic);
 
   wolf_navigation::RosWrapper wrapper(n);

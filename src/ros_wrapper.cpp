@@ -9,22 +9,25 @@ RosWrapper::RosWrapper(ros::NodeHandle &nh)
     nh_ = nh;
 }
 
-void RosWrapper::init(const std::string& trackingcamera_topic, const std::string& child_frame_id)
+void RosWrapper::init(const std::string& trackingcamera_topic, const std::string& child_frame_id, bool twist_in_local_frame)
 {
     trackingcamera_topic_ = trackingcamera_topic;
 
     child_frame_id_ = child_frame_id;
-    odom_frame_id_ = "odom";
+    odom_frame_id_ = "odom";  // FIXME
+    odom_topic_    = "/odom"; // FIXME
 
     sub_ = nh_.subscribe(trackingcamera_topic_,20,&RosWrapper::callback,this);
     odom_publisher_ = nh_.advertise<nav_msgs::Odometry>(odom_topic_,20);
+
+    single_tc_ = std::make_shared<TrackingCameraEstimator>(twist_in_local_frame);
 }
 
 void RosWrapper::callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 {
     try
     {
-        single_tc_.setTransform(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg->child_frame_id,child_frame_id_,ros::Time(0))));
+        single_tc_->setBaseCameraTransform(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg->child_frame_id,child_frame_id_,ros::Time(0))));
     }
     catch (tf2::TransformException &ex)
     {
@@ -37,11 +40,10 @@ void RosWrapper::callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
     tf2::fromMsg(odom_msg->twist.twist.linear, tmp_vector3d_);
     tf2::fromMsg(odom_msg->twist.twist.angular,tmp_vector3d_1_);
 
-    single_tc_.setLinearTwist(tmp_vector3d_);
-    single_tc_.setAngularTwist(tmp_vector3d_1_);
-    single_tc_.setPose(tmp_isometry3d_);
-
-    single_tc_.update();
+    single_tc_->setCameraLinearTwist(tmp_vector3d_);
+    single_tc_->setCameraAngularTwist(tmp_vector3d_1_);
+    single_tc_->setCameraPose(tmp_isometry3d_);
+    single_tc_->update();
 
     // Get current ROS time
     t_ = ros::Time::now();
@@ -50,7 +52,7 @@ void RosWrapper::callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
     {
         // Publish TF msg
         // The navigation stack uses tf to determine the robot's location in the world and relate sensor data to a static map.
-        transform_msg_out_ = tf2::eigenToTransform(single_tc_.getPose());
+        transform_msg_out_ = tf2::eigenToTransform(single_tc_->getBasePose());
         transform_msg_out_.header.seq++;
         transform_msg_out_.header.stamp = t_;
         transform_msg_out_.header.frame_id = odom_frame_id_;
@@ -69,8 +71,8 @@ void RosWrapper::callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
         odom_msg_out_.pose.pose.position.z  = transform_msg_out_.transform.translation.z;
         odom_msg_out_.pose.pose.orientation = transform_msg_out_.transform.rotation;
 
-        tf2::toMsg(single_tc_.getLinearTwist(),odom_msg_out_.twist.twist.linear);
-        tf2::toMsg(single_tc_.getAngularTwist(),odom_msg_out_.twist.twist.angular);
+        tf2::toMsg(single_tc_->getBaseLinearTwist(),odom_msg_out_.twist.twist.linear);
+        tf2::toMsg(single_tc_->getBaseAngularTwist(),odom_msg_out_.twist.twist.angular);
 
         //odom_msg_.twist                  = odom_T_trackingcamera->twist;
         //odom_msg_.twist.twist.linear.z   = 0.0; // basefootprint is on the ground

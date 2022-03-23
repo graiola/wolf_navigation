@@ -34,16 +34,14 @@ int main(int argc, char** argv)
 
   // get ROS params
   std::vector<std::string> trackingcamera_topics;
-  std::string basefootprint_frame_id;
-  std::string odom_output_topic = "/odom";
+  std::string base_frame_id;
   bool twist_in_local_frame;
   n.getParam("trackingcamera_topics", trackingcamera_topics);
-  n.getParam("basefootprint_frame_id", basefootprint_frame_id);
+  n.getParam("base_frame_id", base_frame_id);
   n.getParam("twist_in_local_frame", twist_in_local_frame);
-  n.getParam("odom_output_topic",odom_output_topic);
 
   wolf_navigation::RosWrapper wrapper(n);
-  wrapper.init(trackingcamera_topics[0],basefootprint_frame_id);
+  wrapper.init(trackingcamera_topics[0],base_frame_id,twist_in_local_frame);
 
   ros::spin();
 

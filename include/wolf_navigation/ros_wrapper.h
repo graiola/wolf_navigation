@@ -55,7 +55,7 @@ public:
 
   ~RosWrapper() {}
 
-  void init(const std::string& trackingcamera_frame_id, const std::string& child_frame_id);
+  void init(const std::string& trackingcamera_frame_id, const std::string& child_frame_id, bool twist_in_local_frame = false);
 
   void callback(const nav_msgs::Odometry::ConstPtr& odom_msg);
 
@@ -78,7 +78,7 @@ protected:
   ros::Time t_;
   ros::Time t_prev_;
 
-  TrackingCameraEstimator single_tc_;
+  TrackingCameraEstimator::Ptr single_tc_;
 
   Eigen::Isometry3d tmp_isometry3d_;
   Eigen::Vector3d tmp_vector3d_;

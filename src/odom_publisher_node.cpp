@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   n.getParam("twist_in_local_frame", twist_in_local_frame);
 
   wolf_navigation::RosWrapper wrapper(n);
-  wrapper.init(trackingcamera_topics[0],base_frame_id,twist_in_local_frame);
+  wrapper.init(trackingcamera_topics,base_frame_id,twist_in_local_frame);
 
   ros::spin();
 

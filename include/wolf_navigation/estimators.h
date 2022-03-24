@@ -25,6 +25,16 @@
 
 #include <memory>
 
+namespace Eigen
+{
+    typedef Matrix<double,6,1> Vector6d;
+    typedef Matrix<double,7,1> Vector7d;
+    typedef Matrix<double,6,6> Matrix6d;
+    typedef Matrix<double,4,3> Matrix4x3d;
+    typedef Matrix<double,3,6> Matrix3x6d;
+}
+
+
 namespace wolf_navigation
 {
 
@@ -54,13 +64,15 @@ public:
     // Sets
     void setBaseCameraTransform(const Eigen::Isometry3d& trackingcamera_T_base);
     void setCameraPose(const Eigen::Isometry3d& odom_T_trackingcamera);
+    void setCameraTwist(const Eigen::Vector6d &trackingcamera_twist);
     void setCameraLinearTwist(const Eigen::Vector3d& trackingcamera_v);
     void setCameraAngularTwist(const Eigen::Vector3d& trackingcamera_omega);
 
     // Gets
     const Eigen::Isometry3d& getBasePose();
-    const Eigen::Vector3d& getBaseLinearTwist();
-    const Eigen::Vector3d& getBaseAngularTwist();
+    const Eigen::Vector6d& getBaseTwist();
+    Eigen::Vector3d getBaseLinearTwist();
+    Eigen::Vector3d getBaseAngularTwist();
 
     void update(); // TODO add covariances
 
@@ -69,10 +81,8 @@ private:
     Eigen::Isometry3d trackingcamera_T_base_; // transform
     Eigen::Isometry3d odom_T_trackingcamera_; // transform
     Eigen::Isometry3d odom_T_base_; // transform
-    Eigen::Vector3d trackingcamera_v_; // twist linear
-    Eigen::Vector3d trackingcamera_omega_; // twist angular
-    Eigen::Vector3d base_v_; // twist linear
-    Eigen::Vector3d base_omega_; // twist angular
+    Eigen::Vector6d trackingcamera_twist_; // twist
+    Eigen::Vector6d base_twist_; // twist
     Eigen::Matrix3d base_R_odom_; // rotation matrix
     Eigen::Matrix3d base_R_trackingcamera_; // rotation matrix
 

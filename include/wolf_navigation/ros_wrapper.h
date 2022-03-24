@@ -29,6 +29,9 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <nav_msgs/Odometry.h>
 
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+
 #include <wolf_navigation/estimators.h>
 
 namespace wolf_navigation {
@@ -55,20 +58,23 @@ public:
 
   ~RosWrapper() {}
 
-  void init(const std::string& trackingcamera_frame_id, const std::string& child_frame_id, bool twist_in_local_frame = false);
+  void init(const std::vector<std::string> &trackingcamera_topics, const std::string& child_frame_id, bool twist_in_local_frame = false);
 
-  void callback(const nav_msgs::Odometry::ConstPtr& odom_msg);
+  void singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg);
+
+  void multiCameraCallback(const nav_msgs::Odometry::ConstPtr &odom_msg_1, const nav_msgs::Odometry::ConstPtr &odom_msg_2);
 
 protected:
 
   std::string child_frame_id_;
   std::string odom_frame_id_;
-
-  std::string trackingcamera_topic_;
   std::string odom_topic_;
 
   ros::NodeHandle nh_;
-  ros::Subscriber sub_;
+  ros::Subscriber single_camera_sub_;
+  message_filters::Subscriber<nav_msgs::Odometry> multi_camera_0_sub_;
+  message_filters::Subscriber<nav_msgs::Odometry> multi_camera_1_sub_;
+  std::shared_ptr<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry>> multi_camera_sync_;
   geometry_msgs::TransformStamped transform_msg_out_;
   nav_msgs::Odometry odom_msg_out_;
   tf2_ros::Buffer tf_buffer_;
@@ -78,11 +84,18 @@ protected:
   ros::Time t_;
   ros::Time t_prev_;
 
-  TrackingCameraEstimator::Ptr single_tc_;
+  std::vector<TrackingCameraEstimator::Ptr> camera_estimators_;
 
   Eigen::Isometry3d tmp_isometry3d_;
   Eigen::Vector3d tmp_vector3d_;
   Eigen::Vector3d tmp_vector3d_1_;
+  Eigen::Vector6d tmp_vector6d_;
+
+private:
+
+  void updateCamera(const unsigned int& camera_id, const nav_msgs::Odometry::ConstPtr &odom_msg);
+
+  void publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov);
 
 };
 

@@ -62,7 +62,7 @@ public:
 
   void singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg);
 
-  void multiCameraCallback(const nav_msgs::Odometry::ConstPtr &odom_msg_1, const nav_msgs::Odometry::ConstPtr &odom_msg_2);
+  void multiCameraCallback(const nav_msgs::Odometry::ConstPtr &odom_msg_1, const nav_msgs::Odometry::ConstPtr& odom_msg_2);
 
 protected:
 
@@ -90,10 +90,12 @@ protected:
   Eigen::Vector3d tmp_vector3d_;
   Eigen::Vector3d tmp_vector3d_1_;
   Eigen::Vector6d tmp_vector6d_;
+  Eigen::Matrix6d tmp_matrix6d_;
+  Eigen::Matrix6d tmp_matrix6d_1_;
 
 private:
 
-  void updateCamera(const unsigned int& camera_id, const nav_msgs::Odometry::ConstPtr &odom_msg);
+  void updateCamera(const unsigned int& camera_id, const nav_msgs::Odometry::ConstPtr& odom_msg);
 
   void publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov);
 

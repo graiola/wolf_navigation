@@ -1,7 +1,5 @@
 #include "wolf_navigation/ros_wrapper.h"
 
-#include <std_msgs/Float64.h>
-
 using namespace wolf_navigation;
 
 Eigen::Vector3d rotToRpy(const Eigen::Matrix3d& R)
@@ -36,9 +34,19 @@ Eigen::Matrix3d rpyToRot(const Eigen::Vector3d& rpy)
 }
 
 namespace tf2 {
-void covarianceToEigen(const std_msgs::Float64::ConstPtr& in, Eigen::Matrix6d& out)
+void covarianceToEigen(const boost::array<double, 36>& in, Eigen::Matrix6d& out)
 {
-
+  //out = Eigen::Map<Eigen::Matrix<double,6,6> >(in.data());
+  for(unsigned int i=0;i<6;i++)
+    for(unsigned int j=0;j<6;j++)
+      out(i,j) = in[i*6 + j];
+}
+void eigenToCovariance(const Eigen::Matrix6d& in, boost::array<double, 36>& out)
+{
+  //out = Eigen::Map<Eigen::Matrix<double,6,6> >(in.data());
+  for(unsigned int i=0;i<6;i++)
+    for(unsigned int j=0;j<6;j++)
+      out[i*6 + j] = in(i,j);
 }
 }
 
@@ -88,8 +96,11 @@ void RosWrapper::updateCamera(const unsigned int &camera_id, const nav_msgs::Odo
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
 
-  tf2::fromMsg(odom_msg->pose.covariance, tmp_vectorXd_);
-  //camera_estimators_[camera_id]->setCameraPoseCovariance()
+  tf2::covarianceToEigen(odom_msg->pose.covariance,tmp_matrix6d_);
+  camera_estimators_[camera_id]->setCameraPoseCovariance(tmp_matrix6d_);
+
+  tf2::covarianceToEigen(odom_msg->twist.covariance,tmp_matrix6d_);
+  camera_estimators_[camera_id]->setCameraTwistCovariance(tmp_matrix6d_);
 
   camera_estimators_[camera_id]->update();
 }
@@ -128,16 +139,14 @@ void RosWrapper::publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &p
     //odom_msg_.twist.twist.linear.z   = 0.0; // basefootprint is on the ground
     //odom_msg_.twist.twist.angular.x  = 0.0; // no roll
     //odom_msg_.twist.twist.angular.y  = 0.0; // no pitch
-    //odom_msg_out_.twist.covariance      =
-    //odom_msg_out_.pose.covariance       =
-    // FIXME Now we are using the same covariance of the trackingcamera, we need to adapt it!
-    // FIXME Now we are using the same covariance of the trackingcamera, we need to adapt it!
+    tf2::eigenToCovariance(pose_cov,odom_msg_out_.pose.covariance);
+    tf2::eigenToCovariance(twist_cov,odom_msg_out_.twist.covariance);
     odom_publisher_.publish(odom_msg_out_);
   }
   t_prev_ = t_;
 }
 
-void RosWrapper::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr& odom_msg_1)
+void RosWrapper::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr &odom_msg_1)
 {
   try
   {
@@ -156,14 +165,20 @@ void RosWrapper::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_ms
   updateCamera(1,odom_msg_1);
 
   // Smoothing filter pose
-  tmp_vector3d_   = (camera_estimators_[0]->getBasePose().translation() + camera_estimators_[1]->getBasePose().translation())/2.0; // xyz
-  tmp_vector3d_1_ = (rotToRpy(camera_estimators_[0]->getBasePose().linear()) + rotToRpy(camera_estimators_[1]->getBasePose().linear()))/2.0; // rpy
+  tmp_vector3d_   = (camera_estimators_[0]->getBasePoseCovariance().topLeftCorner(3,3) * camera_estimators_[0]->getBasePose().translation() + camera_estimators_[1]->getBasePoseCovariance().topLeftCorner(3,3) * camera_estimators_[1]->getBasePose().translation()) /
+      (camera_estimators_[0]->getBasePoseCovariance().topLeftCorner(3,3).norm() * camera_estimators_[1]->getBasePoseCovariance().topLeftCorner(3,3).norm()); // xyz
+  tmp_vector3d_1_ = (camera_estimators_[0]->getBasePoseCovariance().bottomRightCorner(3,3) * rotToRpy(camera_estimators_[0]->getBasePose().linear()) + camera_estimators_[1]->getBasePoseCovariance().bottomRightCorner(3,3) * rotToRpy(camera_estimators_[1]->getBasePose().linear())) /
+      (camera_estimators_[0]->getBasePoseCovariance().bottomRightCorner(3,3).norm() * camera_estimators_[1]->getBasePoseCovariance().bottomRightCorner(3,3).norm()); // rpy
   tmp_isometry3d_.translation() = tmp_vector3d_;
   tmp_isometry3d_.linear() = rpyToRot(tmp_vector3d_1_);
   // Smoothing filter twist
-  tmp_vector6d_   = (camera_estimators_[0]->getBaseTwist() + camera_estimators_[1]->getBaseTwist())/2.0;
+  tmp_vector6d_   = (camera_estimators_[0]->getBaseTwistCovariance() * camera_estimators_[0]->getBaseTwist() + camera_estimators_[1]->getBaseTwistCovariance() * camera_estimators_[1]->getBaseTwist()) /
+      (camera_estimators_[0]->getBaseTwistCovariance().norm() * camera_estimators_[1]->getBaseTwistCovariance().norm());
 
-  publish(tmp_isometry3d_,Eigen::Matrix6d::Zero(),tmp_vector6d_,Eigen::Matrix6d::Zero());
+  tmp_matrix6d_ =   (camera_estimators_[0]->getBasePoseCovariance() + camera_estimators_[1]->getBasePoseCovariance())/2.0;
+  tmp_matrix6d_1_ = (camera_estimators_[0]->getBaseTwistCovariance() + camera_estimators_[1]->getBaseTwistCovariance())/2.0;
+
+  publish(tmp_isometry3d_,tmp_matrix6d_,tmp_vector6d_,tmp_matrix6d_1_);
 }
 
 void RosWrapper::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
@@ -179,8 +194,5 @@ void RosWrapper::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_m
 
   updateCamera(0,odom_msg);
 
-  tmp_isometry3d_ = camera_estimators_[0]->getBasePose();
-  tmp_vector6d_   = camera_estimators_[0]->getBaseTwist();
-
-  publish(tmp_isometry3d_,Eigen::Matrix6d::Zero(),tmp_vector6d_,Eigen::Matrix6d::Zero());
+  publish(camera_estimators_[0]->getBasePose(),camera_estimators_[0]->getBasePoseCovariance(),camera_estimators_[0]->getBaseTwist(),camera_estimators_[0]->getBaseTwistCovariance());
 }

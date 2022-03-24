@@ -1,5 +1,7 @@
 #include "wolf_navigation/ros_wrapper.h"
 
+#include <std_msgs/Float64.h>
+
 using namespace wolf_navigation;
 
 Eigen::Vector3d rotToRpy(const Eigen::Matrix3d& R)
@@ -33,6 +35,13 @@ Eigen::Matrix3d rpyToRot(const Eigen::Vector3d& rpy)
   return R;
 }
 
+namespace tf2 {
+void covarianceToEigen(const std_msgs::Float64::ConstPtr& in, Eigen::Matrix6d& out)
+{
+
+}
+}
+
 RosWrapper::RosWrapper(ros::NodeHandle &nh)
   : tf_listener_(tf_buffer_)
 {
@@ -59,10 +68,10 @@ void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, con
   }
   else if (n_trackingcameras == 2)
   {
-      double_camera_0_sub_.subscribe(nh_,trackingcamera_topics[0],20);
-      double_camera_1_sub_.subscribe(nh_,trackingcamera_topics[1],20);
-      double_camera_sync_ = std::make_shared<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry> >(double_camera_0_sub_,double_camera_1_sub_,20);
-      double_camera_sync_->registerCallback(boost::bind(&RosWrapper::doubleCameraCallback,this,_1,_2));
+      multi_camera_0_sub_.subscribe(nh_,trackingcamera_topics[0],20);
+      multi_camera_1_sub_.subscribe(nh_,trackingcamera_topics[1],20);
+      multi_camera_sync_ = std::make_shared<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry> >(multi_camera_0_sub_,multi_camera_1_sub_,20);
+      multi_camera_sync_->registerCallback(boost::bind(&RosWrapper::multiCameraCallback,this,_1,_2));
       camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 0
       camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 1
   }
@@ -75,11 +84,13 @@ void RosWrapper::updateCamera(const unsigned int &camera_id, const nav_msgs::Odo
 {
   tmp_isometry3d_.translation() = Eigen::Vector3d(odom_msg->pose.pose.position.x,odom_msg->pose.pose.position.y,odom_msg->pose.pose.position.z);
   tmp_isometry3d_.linear() = Eigen::Quaterniond(odom_msg->pose.pose.orientation.w,odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z).toRotationMatrix();
-  tf2::fromMsg(odom_msg->twist.twist.linear, tmp_vector3d_);
-  tf2::fromMsg(odom_msg->twist.twist.angular,tmp_vector3d_1_);
-  camera_estimators_[camera_id]->setCameraLinearTwist(tmp_vector3d_);
-  camera_estimators_[camera_id]->setCameraAngularTwist(tmp_vector3d_1_);
+  tf2::fromMsg(odom_msg->twist.twist, tmp_vector6d_);
+  camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
+
+  tf2::fromMsg(odom_msg->pose.covariance, tmp_vectorXd_);
+  //camera_estimators_[camera_id]->setCameraPoseCovariance()
+
   camera_estimators_[camera_id]->update();
 }
 
@@ -126,7 +137,7 @@ void RosWrapper::publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &p
   t_prev_ = t_;
 }
 
-void RosWrapper::doubleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr& odom_msg_1)
+void RosWrapper::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr& odom_msg_1)
 {
   try
   {

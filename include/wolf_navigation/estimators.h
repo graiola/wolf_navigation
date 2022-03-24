@@ -67,14 +67,18 @@ public:
     void setCameraTwist(const Eigen::Vector6d &trackingcamera_twist);
     void setCameraLinearTwist(const Eigen::Vector3d& trackingcamera_v);
     void setCameraAngularTwist(const Eigen::Vector3d& trackingcamera_omega);
+    void setCameraPoseCovariance(const Eigen::Matrix6d& cov);
+    void setCameraTwistCovariance(const Eigen::Matrix6d& cov);
 
     // Gets
     const Eigen::Isometry3d& getBasePose();
     const Eigen::Vector6d& getBaseTwist();
     Eigen::Vector3d getBaseLinearTwist();
     Eigen::Vector3d getBaseAngularTwist();
+    Eigen::Matrix6d getBasePoseCovariance();
+    Eigen::Matrix6d getBaseTwistCovariance();
 
-    void update(); // TODO add covariances
+    void update();
 
 private:
 
@@ -85,6 +89,10 @@ private:
     Eigen::Vector6d base_twist_; // twist
     Eigen::Matrix3d base_R_odom_; // rotation matrix
     Eigen::Matrix3d base_R_trackingcamera_; // rotation matrix
+    Eigen::Matrix6d base_pose_cov_;
+    Eigen::Matrix6d base_twist_cov_;
+    Eigen::Matrix6d trackingcamera_pose_cov_;
+    Eigen::Matrix6d trackingcamera_twist_cov_;
 
     bool twist_in_local_frame_;
 

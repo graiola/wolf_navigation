@@ -34,6 +34,37 @@ namespace Eigen
     typedef Matrix<double,3,6> Matrix3x6d;
 }
 
+inline Eigen::Vector3d rotToRpy(const Eigen::Matrix3d& R)
+{
+  Eigen::Vector3d rpy;
+  rpy(0) = std::atan2(R(2,1),R(2,2));
+  rpy(1) = std::atan2(-R(2,0),std::sqrt(R(2,1)*R(2,1)+R(2,2)*R(2,2)));
+  rpy(2) = std::atan2(R(1,0),R(0,0));
+  return rpy;
+}
+
+inline Eigen::Matrix3d rpyToRot(const Eigen::Vector3d& rpy)
+{
+  Eigen::Matrix3d R;
+
+  R.setZero();
+
+  double c_y = std::cos(rpy(2));
+  double s_y = std::sin(rpy(2));
+
+  double c_r = std::cos(rpy(0));
+  double s_r = std::sin(rpy(0));
+
+  double c_p = std::cos(rpy(1));
+  double s_p = std::sin(rpy(1));
+
+  R << c_p*c_y ,  s_r*s_p*c_y - c_r*s_y                 ,  c_r*s_p*c_y + s_r*s_y  ,
+       c_p*s_y ,  s_r*s_p*s_y + c_r*c_y                 ,  s_y*s_p*c_r - c_y*s_r,
+       -s_p    ,  c_p*s_r                               ,  c_r*c_p;
+
+  return R;
+}
+
 
 namespace wolf_navigation
 {
@@ -77,8 +108,10 @@ public:
     Eigen::Vector3d getBaseAngularTwist();
     Eigen::Matrix6d getBasePoseCovariance();
     Eigen::Matrix6d getBaseTwistCovariance();
+    const Eigen::Vector6d &getBasePose6d();
 
     void update();
+
 
 private:
 
@@ -93,6 +126,7 @@ private:
     Eigen::Matrix6d base_twist_cov_;
     Eigen::Matrix6d trackingcamera_pose_cov_;
     Eigen::Matrix6d trackingcamera_twist_cov_;
+    Eigen::Vector6d odom_X_base_; // pose6d
 
     bool twist_in_local_frame_;
 

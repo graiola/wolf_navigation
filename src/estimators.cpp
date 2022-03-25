@@ -34,6 +34,8 @@ void TrackingCameraEstimator::update()
   base_pose_cov_.topLeftCorner(3,3) = base_R_trackingcamera_ * trackingcamera_pose_cov_.topLeftCorner(3,3) * base_R_trackingcamera_.transpose(); // xyz
   //base_pose_cov_.bottomRightCorner(3,3) = base_R_trackingcamera_ * trackingcamera_pose_cov_.bottomRightCorner(3,3) * base_R_trackingcamera_.transpose(); // rpy // TODO is that correct?
 
+  odom_X_base_.head(3) = odom_T_base_.translation();
+  odom_X_base_.tail(3) = rotToRpy(odom_T_base_.linear());
 }
 
 TrackingCameraEstimator::TrackingCameraEstimator(bool twist_in_local_frame)
@@ -83,6 +85,11 @@ void TrackingCameraEstimator::setCameraTwist(const Eigen::Vector6d &trackingcame
 const Eigen::Isometry3d &TrackingCameraEstimator::getBasePose()
 {
   return odom_T_base_;
+}
+
+const Eigen::Vector6d &TrackingCameraEstimator::getBasePose6d()
+{
+  return odom_X_base_;
 }
 
 Eigen::Vector3d TrackingCameraEstimator::getBaseLinearTwist()

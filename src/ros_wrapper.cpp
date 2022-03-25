@@ -59,10 +59,10 @@ void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, con
   }
   else if (n_trackingcameras == 2)
   {
-      double_camera_0_sub_.subscribe(nh_,trackingcamera_topics[0],20);
-      double_camera_1_sub_.subscribe(nh_,trackingcamera_topics[1],20);
-      double_camera_sync_ = std::make_shared<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry> >(double_camera_0_sub_,double_camera_1_sub_,20);
-      double_camera_sync_->registerCallback(boost::bind(&RosWrapper::doubleCameraCallback,this,_1,_2));
+      multi_camera_0_sub_.subscribe(nh_,trackingcamera_topics[0],20);
+      multi_camera_1_sub_.subscribe(nh_,trackingcamera_topics[1],20);
+      multi_camera_sync_ = std::make_shared<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry> >(multi_camera_0_sub_,multi_camera_1_sub_,20);
+      multi_camera_sync_->registerCallback(boost::bind(&RosWrapper::multiCameraCallback,this,_1,_2));
       camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 0
       camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 1
   }
@@ -126,7 +126,7 @@ void RosWrapper::publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &p
   t_prev_ = t_;
 }
 
-void RosWrapper::doubleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr& odom_msg_1)
+void RosWrapper::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr& odom_msg_1)
 {
   try
   {

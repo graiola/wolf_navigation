@@ -23,5 +23,6 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>tf2</build_depend>
   <build_depend>tf2_eigen</build_depend>
+  <build_depend>move_base</build_depend>
 
 </package>

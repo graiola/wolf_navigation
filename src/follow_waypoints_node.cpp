@@ -70,7 +70,15 @@ public:
     goal.target_pose.pose.position.z = 0.0;
 
     // FIXME align the robot with the heading of the current waypoint wrt the previous one
-    double yaw = std::atan2(waypoint.point.y,waypoint.point.x);
+    double yaw = 0.0;
+
+    if(list_.size()!=0)
+      for(unsigned int i=0;i<list_.size();i++)
+        if(list_[i].first == id_waypoint - 1)
+          yaw = std::atan2(waypoint.point.y-list_[i].second.target_pose.pose.position.y,waypoint.point.x-list_[i].second.target_pose.pose.position.x);
+    else
+          yaw = std::atan2(waypoint.point.y,waypoint.point.x);
+
     tf2::Quaternion q;
     q.setRPY( 0., 0., yaw );
     goal.target_pose.pose.orientation.x = q.x();
@@ -162,6 +170,7 @@ void loop()
       }
       else
         ROS_INFO_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",goal_id);
+
       ros::Duration(0.5).sleep();
 
     }

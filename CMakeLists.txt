@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
     tf2_ros
     tf2_eigen
     move_base
+    actionlib
+    rt_gui
     )
 
 catkin_package()

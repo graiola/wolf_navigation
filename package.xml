@@ -24,5 +24,7 @@
   <build_depend>tf2</build_depend>
   <build_depend>tf2_eigen</build_depend>
   <build_depend>move_base</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>rt_gui</build_depend>
 
 </package>

@@ -149,16 +149,17 @@ void loop()
 
       ROS_INFO_NAMED(NODE_NAME,"The robot is moving toward waypoint %i",goal_id);
 
-      if(_patrol_mode)
-        _waypoints.moveToNextWaypoint();
-      else
-        _waypoints.removeCurrentWaypoint();
-
       _move_base->sendGoal(goal);
 
       _move_base->waitForResult(ros::Duration(_wait_duration));
       if (_move_base->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+      {
+        if(_patrol_mode)
+          _waypoints.moveToNextWaypoint();
+        else
+          _waypoints.removeCurrentWaypoint();
         ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",goal_id);
+      }
       else
         ROS_INFO_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",goal_id);
       ros::Duration(0.5).sleep();

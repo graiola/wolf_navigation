@@ -44,7 +44,7 @@ TrackingCameraEstimator::TrackingCameraEstimator(bool twist_in_local_frame)
   base_twist_ = trackingcamera_twist_   = Eigen::Vector6d::Zero();
   base_R_odom_ = base_R_trackingcamera_ = Eigen::Matrix3d::Identity();
   odom_T_base_ = odom_T_trackingcamera_ = trackingcamera_T_base_ = Eigen::Isometry3d::Identity();
-  base_pose_cov_ = base_twist_cov_ = trackingcamera_pose_cov_ = trackingcamera_twist_cov_ = Eigen::Matrix6d::Identity();
+  base_pose_cov_ = base_twist_cov_ = trackingcamera_pose_cov_ = trackingcamera_twist_cov_ = Eigen::Matrix6d::Zero();
 }
 
 void TrackingCameraEstimator::setBaseCameraTransform(const Eigen::Isometry3d &trackingcamera_T_base)

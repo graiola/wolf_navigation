@@ -80,9 +80,11 @@ void RosWrapper::updateCamera(const unsigned int &camera_id, const nav_msgs::Odo
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
 
+  tmp_matrix6d_.setZero();
   tf2::covarianceToEigen(odom_msg->pose.covariance,tmp_matrix6d_);
   camera_estimators_[camera_id]->setCameraPoseCovariance(tmp_matrix6d_);
 
+  tmp_matrix6d_.setZero();
   tf2::covarianceToEigen(odom_msg->twist.covariance,tmp_matrix6d_);
   camera_estimators_[camera_id]->setCameraTwistCovariance(tmp_matrix6d_);
 

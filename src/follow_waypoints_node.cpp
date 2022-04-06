@@ -52,12 +52,41 @@ public:
 
   void addWaypoint(const move_base_msgs::MoveBaseGoal& waypoint)
   {
+    std::lock_guard<std::mutex> lk(mtx_);
 
+    unsigned int id_waypoint = list_.size()+1;
+
+    tf2::Quaternion q;
+    tf2::fromMsg(waypoint.target_pose.pose.orientation,q);
+    tf2::Matrix3x3 mat(q);
+    tf2Scalar roll, pitch, yaw;
+    mat.getEulerYPR(yaw,pitch,roll);
+
+    ROS_INFO_NAMED(NODE_NAME,"Add waypoint %i -> [x: %f, y: %f, z: %f, r: %f, p: %f, y: %f]",
+                   id_waypoint,waypoint.target_pose.pose.position.x,waypoint.target_pose.pose.position.y,waypoint.target_pose.pose.position.z,roll,pitch,yaw);
+
+    list_.push_back(std::pair<unsigned int,move_base_msgs::MoveBaseGoal>(id_waypoint,waypoint));
+  }
+
+  void addWaypoint(const geometry_msgs::PoseStamped& waypoint)
+  {
+    move_base_msgs::MoveBaseGoal goal;
+    // fill in the navigation goal message
+    goal.target_pose.header.frame_id    = waypoint.header.frame_id;
+    goal.target_pose.header.stamp       = waypoint.header.stamp;
+    goal.target_pose.pose.position.x    = waypoint.pose.position.x;
+    goal.target_pose.pose.position.y    = waypoint.pose.position.y;
+    goal.target_pose.pose.position.z    = 0.0;
+    goal.target_pose.pose.orientation.x = waypoint.pose.orientation.x;
+    goal.target_pose.pose.orientation.y = waypoint.pose.orientation.y;
+    goal.target_pose.pose.orientation.z = waypoint.pose.orientation.z;
+    goal.target_pose.pose.orientation.w = waypoint.pose.orientation.w;
+    addWaypoint(goal);
   }
 
   void addWaypoint(const geometry_msgs::PointStamped& waypoint)
   {
-    std::lock_guard<std::mutex> lk(mtx_);
+    mtx_.lock();
 
     unsigned int id_waypoint = list_.size()+1;
 
@@ -69,13 +98,14 @@ public:
     goal.target_pose.pose.position.y = waypoint.point.y;
     goal.target_pose.pose.position.z = 0.0;
 
-    // FIXME align the robot with the heading of the current waypoint wrt the previous one
+    // align the robot with the heading of the current waypoint wrt the previous one
     double yaw = 0.0;
-
     if(list_.size()!=0)
+    {
       for(unsigned int i=0;i<list_.size();i++)
         if(list_[i].first == id_waypoint - 1)
           yaw = std::atan2(waypoint.point.y-list_[i].second.target_pose.pose.position.y,waypoint.point.x-list_[i].second.target_pose.pose.position.x);
+    }
     else
           yaw = std::atan2(waypoint.point.y,waypoint.point.x);
 
@@ -86,12 +116,9 @@ public:
     goal.target_pose.pose.orientation.z = q.z();
     goal.target_pose.pose.orientation.w = q.w();
 
+    mtx_.unlock();
 
-
-    ROS_INFO_NAMED(NODE_NAME,"Add waypoint %i -> [x: %f, y: %f, z: %f, r: %f, p: %f, y: %f]",
-                   id_waypoint,waypoint.point.x,waypoint.point.y,waypoint.point.z,0.0,0.0,yaw);
-
-    list_.push_back(std::pair<unsigned int,move_base_msgs::MoveBaseGoal>(id_waypoint,goal));
+    addWaypoint(goal);
   }
 
   move_base_msgs::MoveBaseGoal getCurrentWaypoint()
@@ -140,7 +167,7 @@ private:
   std::mutex mtx_;
 } _waypoints;
 
-void callback(const geometry_msgs::PointStamped& waypoint)
+void callback(const geometry_msgs::PoseStamped& waypoint)
 {
   _waypoints.addWaypoint(waypoint);
 }

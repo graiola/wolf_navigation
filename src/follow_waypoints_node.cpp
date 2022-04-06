@@ -28,6 +28,7 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <tf2/utils.h>
 
 #include <rt_gui/rt_gui_client.h>

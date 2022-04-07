@@ -13,7 +13,7 @@
     <arg name="z_init_pose" default="0"/>
     <arg name="yaw_init_pose" default="0"/>
     <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
-
+    <arg name="robot_params" default="" />
 
     <!--Map loading -->
     <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" respawn="false">
@@ -21,7 +21,7 @@
     </node>
 
     <!--load odom params-->
-    <rosparam command="load" file="$(find wolf_navigation)/params/odom_params.yaml" ns="odometry_publisher"/>
+    <rosparam command="load" file="$(arg robot_params)/odom_params.yaml" ns="odom_publisher_node"/>
 
     <!-- start odom node -->
     <node name="odom_publisher_node" pkg="wolf_navigation" type="odom_publisher_node" output="screen"  respawn="false" />

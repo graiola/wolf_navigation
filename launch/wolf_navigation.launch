@@ -11,6 +11,8 @@
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />
 
+    <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
+
     <arg name="mapping" default="false" />
     <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
 
@@ -33,18 +35,22 @@
         <arg name="odom_frame" default="odom"/>
         <arg name="scan_topic" default="scan"/>
         <arg name="map_file" default="$(arg map_file)" />
+        <arg name="robot_params" default="$(arg robot_params)" />
     </include>
 
     <!-- Run move base -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(find wolf_navigation)/params/costmap_common_params.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find wolf_navigation)/params/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find wolf_navigation)/params/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find wolf_navigation)/params/global_costmap_params.yaml" command="load" />
-        <rosparam file="$(find wolf_navigation)/params/base_local_planner_params.yaml" command="load" />
+        <rosparam file="$(arg robot_params)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(arg robot_params)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(arg robot_params)/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(arg robot_params)/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(arg robot_params)/base_local_planner_params.yaml" command="load" />
         <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>
+
+    <!-- Run follow waypoints node -->
+    <node pkg="wolf_navigation" type="follow_waypoints_node" respawn="false" name="follow_waypoints_node" output="screen"/>
 
     <!-- Launch the controller -->
     <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch" if="$(arg launch_controller)" >

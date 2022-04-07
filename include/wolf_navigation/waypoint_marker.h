@@ -25,9 +25,8 @@ public:
 
   }
 
-  void makeMarker(const unsigned int& id, const move_base_msgs::MoveBaseGoal& waypoint)
+  void addMarker(const unsigned int& id, const move_base_msgs::MoveBaseGoal& waypoint)
   {
-
     visualization_msgs::Marker marker;
     marker.header.frame_id = waypoint.target_pose.header.frame_id;
     marker.header.stamp = waypoint.target_pose.header.stamp;
@@ -49,6 +48,15 @@ public:
     marker.scale.z = 0.25;
     marker.color.a = 1.0;
     marker.mesh_resource = "package://wolf_navigation/media/waypoint.dae";
+    pub_.publish( marker );
+  }
+
+  void removeMarker(const unsigned int& id)
+  {
+    visualization_msgs::Marker marker;
+    marker.ns = "wolf_navigation";
+    marker.id = id;
+    marker.action = marker.DELETE;
     pub_.publish( marker );
   }
 

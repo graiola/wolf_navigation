@@ -24,8 +24,7 @@ void Waypoints::addWaypoint(const move_base_msgs::MoveBaseGoal& waypoint)
   list_.push_back(std::pair<unsigned int,move_base_msgs::MoveBaseGoal>(id_waypoint,waypoint));
 
   // Visualize waypoint
-
-  marker_->makeMarker(id_waypoint,waypoint);
+  marker_->addMarker(id_waypoint,waypoint);
 }
 
 void Waypoints::addWaypoint(const geometry_msgs::PoseStamped& waypoint)
@@ -96,13 +95,14 @@ unsigned int Waypoints::getCurrentWaypointId()
 void Waypoints::removeCurrentWaypoint()
 {
   std::lock_guard<std::mutex> lk(mtx_);
+  marker_->removeMarker(list_.front().first);
   list_.pop_front();
 }
 
 void Waypoints::removeWaypoint(const unsigned int &id)
 {
   std::lock_guard<std::mutex> lk(mtx_);
-
+  // TODO
 }
 
 void Waypoints::moveToNextWaypoint()

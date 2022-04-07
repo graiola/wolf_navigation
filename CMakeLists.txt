@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
     move_base
     actionlib
     rt_gui
+    message_filters
     )
 
 catkin_package()
@@ -25,7 +26,7 @@ include_directories(
 )
 
 # odom publisher node
-add_executable(odom_publisher_node src/odom_publisher_node.cpp)
+add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
 add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp)
@@ -44,14 +45,9 @@ install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   PATTERN ".svn" EXCLUDE)
 
-install(DIRECTORY params/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/params
-  PATTERN ".svn" EXCLUDE)
-
 install(DIRECTORY maps/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/maps
   PATTERN ".svn" EXCLUDE)
 
 install(DIRECTORY media/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/media)
-

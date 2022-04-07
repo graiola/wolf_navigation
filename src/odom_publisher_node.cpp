@@ -31,6 +31,10 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <nav_msgs/Odometry.h>
 
+#include "wolf_navigation/ros_wrapper.h"
+
+#define NODE_NAME "odom_publisher_node"
+
 static std::string _trackingcamera_frame_id = "";
 static std::string _base_footprint_frame_id = "";
 static std::string _odom_frame_id = "";
@@ -71,7 +75,7 @@ void callback(const nav_msgs::Odometry::ConstPtr& trackingcamera_odom_msg)
   }
   catch (tf2::TransformException &ex)
   {
-    ROS_WARN("%s",ex.what());
+    ROS_WARN_NAMED(NODE_NAME,"%s",ex.what());
   }
 
   // The tracking camera provides us the following transform: odom_T_trackingcamera
@@ -150,30 +154,24 @@ void callback(const nav_msgs::Odometry::ConstPtr& trackingcamera_odom_msg)
   _t_prev = _t;
 }
 
-
 int main(int argc, char** argv)
 {
-  std::string ns = "odometry_publisher";
+  std::string ns = NODE_NAME;
 
   ros::init(argc, argv, ns);
 
   ros::NodeHandle n(ns); // load the relative namespace
 
   // get ROS params
-  std::string trackingcamera_topic, output_topic;
-  n.getParam("trackingcamera_topic", trackingcamera_topic);
-  n.getParam("output_topic", output_topic);
-  n.getParam("trackingcamera_frame_id", _trackingcamera_frame_id);
-  n.getParam("basefootprint_frame_id", _base_footprint_frame_id);
-  n.getParam("odom_frame_id", _odom_frame_id);
-  n.getParam("twist_in_odom_frame", _twist_in_odom_frame);
+  std::vector<std::string> trackingcamera_topics;
+  std::string base_frame_id;
+  bool twist_in_local_frame;
+  n.getParam("trackingcamera_topics", trackingcamera_topics);
+  n.getParam("base_frame_id", base_frame_id);
+  n.getParam("twist_in_local_frame", twist_in_local_frame);
 
-  _t = _t_prev = ros::Time::now();
-
-  _handler = std::make_shared<RosTransformHandler>(n);
-
-  // initialize trackingcamera odom subscriber
-  ros::Subscriber trackingcamera_sub = n.subscribe(trackingcamera_topic, 20, callback);
+  wolf_navigation::RosWrapper wrapper(n);
+  wrapper.init(trackingcamera_topics,base_frame_id,twist_in_local_frame);
 
   ros::spin();
 

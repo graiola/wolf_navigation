@@ -26,5 +26,6 @@
   <build_depend>move_base</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>rt_gui</build_depend>
+  <build_depend>message_filters</build_depend>
 
 </package>

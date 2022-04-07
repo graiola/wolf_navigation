@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package()
 
 include_directories(
+  include
   ${EIGEN_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
@@ -27,7 +28,7 @@ include_directories(
 add_executable(odom_publisher_node src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
-add_executable(follow_waypoints_node src/follow_waypoints_node.cpp)
+add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp)
 target_link_libraries(follow_waypoints_node ${catkin_LIBRARIES})
 
 install(TARGETS odom_publisher_node follow_waypoints_node
@@ -35,6 +36,9 @@ install(TARGETS odom_publisher_node follow_waypoints_node
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
@@ -47,3 +51,7 @@ install(DIRECTORY params/
 install(DIRECTORY maps/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/maps
   PATTERN ".svn" EXCLUDE)
+
+install(DIRECTORY media/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/media)
+

@@ -10,6 +10,7 @@
     <arg name="gazebo" default="true" />
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />
+    <arg name="local_planner" default="dwa_local_planner/DWAPlannerROS" />
 
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
 
@@ -45,7 +46,7 @@
         <rosparam file="$(arg robot_params)/local_costmap_params.yaml" command="load" />
         <rosparam file="$(arg robot_params)/global_costmap_params.yaml" command="load" />
         <rosparam file="$(arg robot_params)/base_local_planner_params.yaml" command="load" />
-        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+        <param name="base_local_planner" value="$(arg local_planner)"/>
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>
 

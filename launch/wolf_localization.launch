@@ -21,7 +21,7 @@
     </node>
 
     <!--load odom params-->
-    <rosparam command="load" file="$(arg robot_params)/odom_params.yaml" ns="odom_publisher_node"/>
+    <rosparam command="load" file="$(arg robot_params)/odom_params.yaml" ns="odom_publisher_node" subst_value="true"/>
 
     <!-- start odom node -->
     <node name="odom_publisher_node" pkg="wolf_navigation" type="odom_publisher_node" output="screen"  respawn="false" />

@@ -8,10 +8,10 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <tf2/utils.h>
 
-#include <wolf_navigation/waypoint_marker.h>
-
 #include <deque>
 #include <mutex>
+
+#include "wolf_navigation/waypoint.h"
 
 class Waypoints
 {
@@ -21,8 +21,6 @@ public:
   const std::string CLASS_NAME = "Waypoints";
 
   typedef std::shared_ptr<Waypoints> Ptr;
-
-  typedef std::pair<unsigned int,move_base_msgs::MoveBaseGoal> waypoint_t;
 
   Waypoints(ros::NodeHandle& nh);
 
@@ -34,7 +32,7 @@ public:
 
   void addWaypoint(const geometry_msgs::PointStamped& waypoint);
 
-  move_base_msgs::MoveBaseGoal getCurrentWaypoint();
+  move_base_msgs::MoveBaseGoal getCurrentWaypointGoal();
 
   unsigned int getCurrentWaypointId();
 
@@ -48,10 +46,10 @@ public:
 
 private:
   ros::NodeHandle& nh_;
-  std::deque<waypoint_t> list_;
+  std::deque<Waypoint::Ptr> list_;
   std::mutex mtx_;
 
-  WaypointMarker::Ptr marker_;
+  std::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
 };
 
 #endif

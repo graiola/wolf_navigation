@@ -29,13 +29,13 @@
 
 using namespace rt_gui;
 
-bool _running = false;
-bool _patrol_mode = false;
-double _wait_duration = 360.0;
+static bool _running = false;
+static bool _patrol_mode = false;
+static double _wait_duration = 360.0;
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-std::shared_ptr<MoveBaseClient> _move_base;
-Waypoints::Ptr _waypoints;
+static std::shared_ptr<MoveBaseClient> _move_base;
+static Waypoints::Ptr _waypoints;
 
 #define NODE_NAME "follow_waypoints_node"
 
@@ -51,10 +51,10 @@ void loop()
   {
     if(_running && _waypoints->getNumberOfWaypoints())
     {
-      auto goal    = _waypoints->getCurrentWaypoint();
-      auto goal_id = _waypoints->getCurrentWaypointId();
+      auto goal    = _waypoints->getCurrentWaypointGoal();
+      auto id      = _waypoints->getCurrentWaypointId();
 
-      ROS_INFO_NAMED(NODE_NAME,"The robot is moving toward waypoint %i",goal_id);
+      ROS_INFO_NAMED(NODE_NAME,"The robot is moving toward waypoint %i",id);
 
       _move_base->sendGoal(goal);
 
@@ -64,11 +64,11 @@ void loop()
         if(_patrol_mode)
           _waypoints->moveToNextWaypoint();
         else
-          _waypoints->removeCurrentWaypoint();
-        ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",goal_id);
+          _waypoints->removeWaypoint(id);
+        ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",id);
       }
       else
-        ROS_INFO_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",goal_id);
+        ROS_INFO_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",id);
 
       ros::Duration(0.5).sleep();
 

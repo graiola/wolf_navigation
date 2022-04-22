@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib
     rt_gui
     message_filters
+    interactive_markers
     )
 
 catkin_package()
@@ -29,7 +30,7 @@ include_directories(
 add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
-add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp)
+add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp src/waypoint.cpp)
 target_link_libraries(follow_waypoints_node ${catkin_LIBRARIES})
 
 install(TARGETS odom_publisher_node follow_waypoints_node

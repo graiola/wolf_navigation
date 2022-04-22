@@ -3,47 +3,50 @@
 Waypoints::Waypoints(ros::NodeHandle &nh)
   :nh_(nh)
 {
-  marker_.reset(new WaypointMarker(nh));
+  interactive_marker_server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>("waypoints");
 }
 
-void Waypoints::addWaypoint(const move_base_msgs::MoveBaseGoal& waypoint)
+void Waypoints::addWaypoint(const move_base_msgs::MoveBaseGoal& goal)
 {
   std::lock_guard<std::mutex> lk(mtx_);
 
-  unsigned int id_waypoint = list_.size()+1;
+  unsigned int id = list_.size()+1;
 
   tf2::Quaternion q;
-  tf2::fromMsg(waypoint.target_pose.pose.orientation,q);
+  tf2::fromMsg(goal.target_pose.pose.orientation,q);
   tf2::Matrix3x3 mat(q);
   tf2Scalar roll, pitch, yaw;
   mat.getEulerYPR(yaw,pitch,roll);
 
   ROS_INFO_NAMED(CLASS_NAME,"Add waypoint %i -> [x: %f, y: %f, z: %f, r: %f, p: %f, y: %f]",
-                 id_waypoint,waypoint.target_pose.pose.position.x,waypoint.target_pose.pose.position.y,waypoint.target_pose.pose.position.z,roll,pitch,yaw);
+                 id,goal.target_pose.pose.position.x,goal.target_pose.pose.position.y,goal.target_pose.pose.position.z,roll,pitch,yaw);
 
-  list_.push_back(std::pair<unsigned int,move_base_msgs::MoveBaseGoal>(id_waypoint,waypoint));
+
+  list_.push_back(std::make_shared<Waypoint>(id,goal));
 
   // Visualize waypoint
-  marker_->addMarker(id_waypoint,waypoint);
+  interactive_marker_server_->insert(list_.back()->getInteractiveMarker());
+  list_.back()->createMenuEntry(boost::bind(&Waypoints::removeWaypoint,this,list_.back()->getId()),*interactive_marker_server_);
+  interactive_marker_server_->applyChanges();
 }
 
-void Waypoints::addWaypoint(const geometry_msgs::PoseStamped& waypoint)
+void Waypoints::addWaypoint(const geometry_msgs::PoseStamped& pose)
 {
   move_base_msgs::MoveBaseGoal goal;
   // fill in the navigation goal message
-  goal.target_pose.header.frame_id    = waypoint.header.frame_id;
-  goal.target_pose.header.stamp       = waypoint.header.stamp;
-  goal.target_pose.pose.position.x    = waypoint.pose.position.x;
-  goal.target_pose.pose.position.y    = waypoint.pose.position.y;
+  goal.target_pose.header.frame_id    = pose.header.frame_id;
+  goal.target_pose.header.stamp       = pose.header.stamp;
+  goal.target_pose.pose.position.x    = pose.pose.position.x;
+  goal.target_pose.pose.position.y    = pose.pose.position.y;
   goal.target_pose.pose.position.z    = 0.0;
-  goal.target_pose.pose.orientation.x = waypoint.pose.orientation.x;
-  goal.target_pose.pose.orientation.y = waypoint.pose.orientation.y;
-  goal.target_pose.pose.orientation.z = waypoint.pose.orientation.z;
-  goal.target_pose.pose.orientation.w = waypoint.pose.orientation.w;
+  goal.target_pose.pose.orientation.x = pose.pose.orientation.x;
+  goal.target_pose.pose.orientation.y = pose.pose.orientation.y;
+  goal.target_pose.pose.orientation.z = pose.pose.orientation.z;
+  goal.target_pose.pose.orientation.w = pose.pose.orientation.w;
   addWaypoint(goal);
 }
 
-void Waypoints::addWaypoint(const geometry_msgs::PointStamped& waypoint)
+void Waypoints::addWaypoint(const geometry_msgs::PointStamped& point)
 {
   mtx_.lock();
 
@@ -51,10 +54,10 @@ void Waypoints::addWaypoint(const geometry_msgs::PointStamped& waypoint)
 
   move_base_msgs::MoveBaseGoal goal;
   // fill in the navigation goal message
-  goal.target_pose.header.frame_id = waypoint.header.frame_id;
-  goal.target_pose.header.stamp    = waypoint.header.stamp;
-  goal.target_pose.pose.position.x = waypoint.point.x;
-  goal.target_pose.pose.position.y = waypoint.point.y;
+  goal.target_pose.header.frame_id = point.header.frame_id;
+  goal.target_pose.header.stamp    = point.header.stamp;
+  goal.target_pose.pose.position.x = point.point.x;
+  goal.target_pose.pose.position.y = point.point.y;
   goal.target_pose.pose.position.z = 0.0;
 
   // align the robot with the heading of the current waypoint wrt the previous one
@@ -62,11 +65,11 @@ void Waypoints::addWaypoint(const geometry_msgs::PointStamped& waypoint)
   if(list_.size()!=0)
   {
     for(unsigned int i=0;i<list_.size();i++)
-      if(list_[i].first == id_waypoint - 1)
-        yaw = std::atan2(waypoint.point.y-list_[i].second.target_pose.pose.position.y,waypoint.point.x-list_[i].second.target_pose.pose.position.x);
+      if(list_[i]->getId() == id_waypoint - 1)
+        yaw = std::atan2(point.point.y-list_[i]->getGoal().target_pose.pose.position.y,point.point.x-list_[i]->getGoal().target_pose.pose.position.x);
   }
   else
-    yaw = std::atan2(waypoint.point.y,waypoint.point.x);
+    yaw = std::atan2(point.point.y,point.point.x);
 
   tf2::Quaternion q;
   q.setRPY( 0., 0., yaw );
@@ -80,46 +83,40 @@ void Waypoints::addWaypoint(const geometry_msgs::PointStamped& waypoint)
   addWaypoint(goal);
 }
 
-move_base_msgs::MoveBaseGoal Waypoints::getCurrentWaypoint()
+move_base_msgs::MoveBaseGoal Waypoints::getCurrentWaypointGoal()
 {
   std::lock_guard<std::mutex> lk(mtx_);
-  return list_[0].second; // FIXME
+  return list_[0]->getGoal(); // FIXME
 }
 
 unsigned int Waypoints::getCurrentWaypointId()
 {
   std::lock_guard<std::mutex> lk(mtx_);
-  return list_[0].first; // FIXME
+  return list_[0]->getId(); // FIXME
 }
 
 void Waypoints::removeCurrentWaypoint()
 {
   std::lock_guard<std::mutex> lk(mtx_);
-  marker_->removeMarker(list_.front().first);
+  ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", list_.front()->getId());
+  interactive_marker_server_->erase(list_.front()->getName());
+  interactive_marker_server_->applyChanges();
   list_.pop_front();
 }
 
 void Waypoints::removeWaypoint(const unsigned int &id)
 {
   std::lock_guard<std::mutex> lk(mtx_);
-  // TODO
+  ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", id);
+  interactive_marker_server_->erase(list_[id-1]->getName());
+  interactive_marker_server_->applyChanges();
+  list_.erase(list_.begin()+id-1);
 }
 
 void Waypoints::moveToNextWaypoint()
 {
   std::lock_guard<std::mutex> lk(mtx_);
-
-
-  //std::cout << "BEFORE" << std::endl;
-  //for(unsigned int i=0;i<list_.size();i++)
-  //  std::cout << "w " << list_[i].first << std::endl;
-
   std::rotate(list_.begin(), list_.begin() + 1, list_.end());
-
-  //std::cout << "AFTER" << std::endl;
-  //for(unsigned int i=0;i<list_.size();i++)
-  //  std::cout << "w " << list_[i].first << std::endl;
-
 }
 
 unsigned int Waypoints::getNumberOfWaypoints()

@@ -28,7 +28,7 @@ const std::string& Waypoint::getName()
   return name_;
 }
 
-const unsigned int& Waypoint::getId()
+const int& Waypoint::getId()
 {
   return id_;
 }

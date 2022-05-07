@@ -31,7 +31,7 @@ public:
 
   const std::string& getName();
 
-  const unsigned int& getId();
+  const int &getId();
 
   const move_base_msgs::MoveBaseGoal& getGoal();
 
@@ -44,7 +44,7 @@ private:
   void createMarker(const unsigned int& id, const move_base_msgs::MoveBaseGoal& waypoint);
 
   std::string name_;
-  unsigned int id_;
+  int id_;
   move_base_msgs::MoveBaseGoal goal_;
   interactive_markers::MenuHandler menu_handler_;
   visualization_msgs::Marker marker_;

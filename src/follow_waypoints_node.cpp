@@ -22,7 +22,6 @@
  * A simple interface to send a sequence of waypoints to move_base
  */
 
-#include <actionlib/client/simple_action_client.h>
 #include <rt_gui/rt_gui_client.h>
 
 #include "wolf_navigation/waypoints.h"
@@ -32,8 +31,6 @@ using namespace rt_gui;
 static bool _running = false;
 static bool _patrol_mode = false;
 static double _wait_duration = 360.0;
-
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 static std::shared_ptr<MoveBaseClient> _move_base;
 static Waypoints::Ptr _waypoints;
 
@@ -54,21 +51,32 @@ void loop()
       auto goal    = _waypoints->getCurrentWaypointGoal();
       auto id      = _waypoints->getCurrentWaypointId();
 
-      ROS_INFO_NAMED(NODE_NAME,"The robot is moving toward waypoint %i",id);
-
-      _move_base->sendGoal(goal);
-
-      _move_base->waitForResult(ros::Duration(_wait_duration));
-      if (_move_base->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+      if(id != -1)
       {
-        if(_patrol_mode)
-          _waypoints->moveToNextWaypoint();
+        ROS_INFO_NAMED(NODE_NAME,"The robot is moving toward waypoint %i",id);
+
+        _move_base->sendGoal(goal);
+
+        _move_base->waitForResult(ros::Duration(_wait_duration));
+        auto state = _move_base->getState();
+
+        if (state == actionlib::SimpleClientGoalState::SUCCEEDED ||
+            state == actionlib::SimpleClientGoalState::ABORTED    )
+        {
+          if(_patrol_mode)
+            _waypoints->moveToNextWaypoint();
+          else
+            _waypoints->removeWaypoint(id);
+          if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+            ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",id);
+          else if (state == actionlib::SimpleClientGoalState::ABORTED)
+            ROS_WARN_NAMED(NODE_NAME,"The robot did not reach waypoint %i, aborted",id);
+        }
         else
-          _waypoints->removeWaypoint(id);
-        ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",id);
+          ROS_WARN_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",id);
       }
       else
-        ROS_INFO_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",id);
+        ROS_WARN_NAMED(NODE_NAME,"Invalid waypoint id %i",id);
 
       ros::Duration(0.5).sleep();
 
@@ -86,7 +94,7 @@ int main(int argc, char** argv)
 
   _move_base.reset(new MoveBaseClient("move_base", true));
 
-  _waypoints.reset(new Waypoints(n));
+  _waypoints.reset(new Waypoints(n,_move_base));
 
   ros::Subscriber sub = n.subscribe("waypoints", 1000, callback);
 

@@ -99,7 +99,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub = n.subscribe("waypoints", 1000, callback);
 
   // create interface
-  if(RtGuiClient::getIstance().init("wolf_panel"))
+  if(RtGuiClient::getIstance().init("wolf_panel","follow_waypoints"))
   {
     RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Start"),&_running);
     RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Patrol mode"),&_patrol_mode);

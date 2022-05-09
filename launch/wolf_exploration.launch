@@ -29,7 +29,7 @@
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>
       <param name="visualize" value="true"/>
-      <param name="planner_frequency" value="0.33"/>
+      <param name="planner_frequency" value="5"/>
       <param name="progress_timeout" value="30.0"/>
       <param name="potential_scale" value="3.0"/>
       <param name="orientation_scale" value="0.0"/>

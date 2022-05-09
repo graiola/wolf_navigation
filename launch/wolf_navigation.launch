@@ -16,7 +16,8 @@
     <arg name="odom_frame" value="odom"/>
     <arg name="base_frame" value="base_footprint"/>
     <arg name="scan_topic" value="scan"/>
-    <arg name="pointcloud_topic" value="velodyne_pointcloud"/>
+    <arg name="velodyne_pointcloud_topic" value="velodyne_pointcloud"/>
+    <arg name="depth_pointcloud_topic" value="d435"/>
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
     <arg name="mapping" default="false" />
     <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
@@ -24,8 +25,17 @@
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
-        <remap from="cloud_in" to="/$(arg pointcloud_topic)"/>
+        <remap from="cloud_in" to="/$(arg velodyne_pointcloud_topic)"/>
     </node>
+
+   <!-- Convert depth into a point cloud -->
+   <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+   <node pkg="nodelet" type="nodelet" name="cloudify"
+         args="load depth_image_proc/point_cloud_xyz nodelet_manager">
+     <remap from="camera_info" to="/$(arg depth_pointcloud_topic)/depth/camera_info"/>
+     <remap from="image_rect" to="/$(arg depth_pointcloud_topic)/depth/image_raw"/>
+     <remap from="points" to="/$(arg depth_pointcloud_topic)/points"/>
+   </node>
 
     <!-- Run hector slam -->
     <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">

@@ -123,7 +123,9 @@ void Waypoints::removeWaypoint(const int &id)
       idx_to_remove = i;
   if(idx_to_remove != -1 && interactive_marker_server_->erase(list_[static_cast<unsigned int>(idx_to_remove)]->getName()))
   {
-    move_base_->cancelGoal();
+    if(idx_to_remove == 0)
+      move_base_->cancelGoal();
+
     ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", id);
     interactive_marker_server_->applyChanges();
     list_.erase(list_.begin()+id-1);

@@ -60,17 +60,17 @@ void loop()
         _move_base->waitForResult(ros::Duration(_wait_duration));
         auto state = _move_base->getState();
 
-        if (state == actionlib::SimpleClientGoalState::SUCCEEDED ||
-            state == actionlib::SimpleClientGoalState::ABORTED    )
+        if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
         {
           if(_patrol_mode)
             _waypoints->moveToNextWaypoint();
           else
             _waypoints->removeWaypoint(id);
-          if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-            ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",id);
-          else if (state == actionlib::SimpleClientGoalState::ABORTED)
-            ROS_WARN_NAMED(NODE_NAME,"The robot did not reach waypoint %i, aborted",id);
+          ROS_INFO_NAMED(NODE_NAME,"The robot reached waypoint %i",id);
+        }
+        else if(state == actionlib::SimpleClientGoalState::ABORTED)
+        {
+          ROS_WARN_NAMED(NODE_NAME,"The robot did not reach waypoint %i, aborted",id);
         }
         else
           ROS_WARN_NAMED(NODE_NAME,"The robot failed to reach waypoint %i",id);
@@ -79,7 +79,6 @@ void loop()
         ROS_WARN_NAMED(NODE_NAME,"Invalid waypoint id %i",id);
 
       ros::Duration(0.5).sleep();
-
     }
   }
 }

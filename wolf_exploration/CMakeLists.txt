@@ -27,10 +27,10 @@ include_directories(
 )
 
 # odom publisher node
-add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/odom_publisher_node.cpp)
+add_executable(odom_publisher_node src/utils/ros_wrapper.cpp src/utils/estimators.cpp src/utils/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
-add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp src/waypoint.cpp)
+add_executable(follow_waypoints_node src/waypoints/follow_waypoints_node.cpp src/waypoints/waypoints.cpp src/waypoints/waypoint.cpp)
 target_link_libraries(follow_waypoints_node ${catkin_LIBRARIES})
 
 install(TARGETS odom_publisher_node follow_waypoints_node

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package>
+  <name>wolf_navigation</name>
+  <version>0.0.1</version>
+  <description>
+        This package provides navigation functionalities to WoLF
+  </description>
+  <maintainer email="rollo.f96@gmail.com">Federico Rollo</maintainer>
+  <maintainer email="gennaro.raiola@gmail.com">Gennaro Raiola</maintainer>
+  <author>Gennaro Raiola</author>
+  <license>GNU General Public License v3.0</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>wolf_controller</run_depend>
+  <run_depend>move_base</run_depend>
+  <run_depend>hector_mapping</run_depend>
+  <run_depend>pointcloud_to_laserscan</run_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>move_base</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>rt_gui</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>interactive_markers</build_depend>
+
+</package>

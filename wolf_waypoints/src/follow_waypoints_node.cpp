@@ -24,7 +24,7 @@
 
 #include <rt_gui/rt_gui_client.h>
 
-#include "wolf_navigation/waypoints.h"
+#include "wolf_waypoints/waypoints.h"
 
 using namespace rt_gui;
 
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
   // create interface
   if(RtGuiClient::getIstance().init("wolf_panel","follow_waypoints"))
   {
-    RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Start"),&_running);
+    RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Running"),&_running);
     RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Patrol mode"),&_patrol_mode);
   }
 

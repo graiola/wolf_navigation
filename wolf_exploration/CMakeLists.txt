@@ -1,54 +1,83 @@
-cmake_minimum_required(VERSION 3.0.2)
-project(wolf_navigation)
+cmake_minimum_required(VERSION 3.1)
+project(wolf_exploration)
 
-find_package(PkgConfig)
-pkg_check_modules(EIGEN eigen3)
+## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    std_msgs
-    geometry_msgs
-    nav_msgs
-    tf2
-    tf2_ros
-    tf2_eigen
-    move_base
-    actionlib
-    rt_gui
-    message_filters
-    interactive_markers
-    )
-
-catkin_package()
-
-include_directories(
-  include
-  ${EIGEN_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
+  actionlib
+  actionlib_msgs
+  costmap_2d
+  geometry_msgs
+  map_msgs
+  move_base_msgs
+  nav_msgs
+  roscpp
+  std_msgs
+  tf
+  visualization_msgs
+  rt_gui
 )
 
-# odom publisher node
-add_executable(odom_publisher_node src/utils/ros_wrapper.cpp src/utils/estimators.cpp src/utils/odom_publisher_node.cpp)
-target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+  CATKIN_DEPENDS
+    actionlib
+    actionlib_msgs
+    costmap_2d
+    geometry_msgs
+    map_msgs
+    move_base_msgs
+    nav_msgs
+    roscpp
+    std_msgs
+    tf
+    visualization_msgs
+)
 
-add_executable(follow_waypoints_node src/waypoints/follow_waypoints_node.cpp src/waypoints/waypoints.cpp src/waypoints/waypoint.cpp)
-target_link_libraries(follow_waypoints_node ${catkin_LIBRARIES})
+###########
+## Build ##
+###########
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-install(TARGETS odom_publisher_node follow_waypoints_node
+## Specify additional locations of header files
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  include
+)
+
+add_executable(explore_node
+  src/costmap_client.cpp
+  src/explore.cpp
+  src/frontier_search.cpp
+)
+add_dependencies(explore_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(explore_node ${catkin_LIBRARIES})
+
+#############
+## Install ##
+#############
+
+# install nodes
+install(TARGETS explore_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-
+# install roslaunch files
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  PATTERN ".svn" EXCLUDE)
+)
 
-install(DIRECTORY maps/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/maps
-  PATTERN ".svn" EXCLUDE)
+#############
+## Testing ##
+#############
+if(CATKIN_ENABLE_TESTING)
+  find_package(roslaunch REQUIRED)
 
-install(DIRECTORY media/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/media)
+  # test all launch files
+  roslaunch_add_file_check(launch)
+endif()

@@ -1,5 +1,5 @@
-#ifndef WOLF_NAVIGATION_WAYPOINTS_H
-#define WOLF_NAVIGATION_WAYPOINTS_H
+#ifndef WOLF_WAYPOINTS_WAYPOINTS_H
+#define WOLF_WAYPOINTS_WAYPOINTS_H
 
 #include <ros/ros.h>
 #include <ros/time.h>
@@ -13,7 +13,7 @@
 #include <deque>
 #include <mutex>
 
-#include "wolf_navigation/waypoint.h"
+#include "wolf_waypoints/waypoint.h"
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 

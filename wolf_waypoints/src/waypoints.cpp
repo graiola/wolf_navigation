@@ -1,4 +1,4 @@
-#include "wolf_navigation/waypoints.h"
+#include "wolf_waypoints/waypoints.h"
 
 Waypoints::Waypoints(ros::NodeHandle &nh, std::shared_ptr<MoveBaseClient> move_base)
   :nh_(nh)

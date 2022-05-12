@@ -31,7 +31,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <nav_msgs/Odometry.h>
 
-#include "wolf_navigation/ros_wrapper.h"
+#include "wolf_navigation_utils/ros_wrapper.h"
 
 #define NODE_NAME "odom_publisher_node"
 

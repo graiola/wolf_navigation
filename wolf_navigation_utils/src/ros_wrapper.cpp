@@ -1,4 +1,4 @@
-#include "wolf_navigation/ros_wrapper.h"
+#include "wolf_navigation_utils/ros_wrapper.h"
 
 using namespace wolf_navigation;
 

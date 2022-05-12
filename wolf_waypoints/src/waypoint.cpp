@@ -1,7 +1,4 @@
-
-
-#include "wolf_navigation/waypoint.h"
-
+#include "wolf_waypoints/waypoint.h"
 
 Waypoint::Waypoint(const unsigned int& id, const move_base_msgs::MoveBaseGoal& goal)
 {

@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef ESTIMATOR_H
-#define ESTIMATOR_H
+#ifndef WOLF_NAVIGATION_UTILS_ESTIMATOR_H
+#define WOLF_NAVIGATION_UTILS_ESTIMATOR_H
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>

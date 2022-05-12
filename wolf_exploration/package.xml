@@ -1,32 +1,35 @@
 <?xml version="1.0"?>
-<package>
-  <name>wolf_navigation</name>
+<package format="2">
+  <name>wolf_exploration</name>
   <version>0.0.1</version>
-  <description>
-        This package provides navigation functionalities to WoLF
-  </description>
-  <maintainer email="rollo.f96@gmail.com">Federico Rollo</maintainer>
-  <maintainer email="gennaro.raiola@gmail.com">Gennaro Raiola</maintainer>
-  <author>Gennaro Raiola</author>
-  <license>GNU General Public License v3.0</license>
-  
+
+  <description>Lightweight frontier-based exploration.</description>
+
+  <author email="laeqten@gmail.com">Jiri Horner</author>
+  <maintainer email="laeqten@gmail.com">Jiri Horner</maintainer>
+  <license>BSD</license>
+  <url>http://wiki.ros.org/explore_lite</url>
+
+  <!-- acknowledgements
+  <author>Charles DuHadway</author>
+  <url>http://ros.org/wiki/explore</url>
+  <author>Paul Bovbel</author>
+  <url>https://github.com/paulbovbel/frontier_exploration</url>
+  -->
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>wolf_controller</run_depend>
-  <run_depend>move_base</run_depend>
-  <run_depend>hector_mapping</run_depend>
-  <run_depend>pointcloud_to_laserscan</run_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>move_base_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>map_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>actionlib_msgs</depend>
+  <depend>tf</depend>
+  <depend>costmap_2d</depend>
+  <depend>actionlib</depend>
+  <depend>rt_gui</depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_eigen</build_depend>
-  <build_depend>move_base</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>rt_gui</build_depend>
-  <build_depend>message_filters</build_depend>
-  <build_depend>interactive_markers</build_depend>
-
+  <test_depend>roslaunch</test_depend>
 </package>

@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef ROSWRAPPER_H
-#define ROSWRAPPER_H
+#ifndef WOLF_NAVIGATION_UTILS_ROS_WRAPPER_H
+#define WOLF_NAVIGATION_UTILS_ROS_WRAPPER_H
 
 #include <ros/ros.h>
 #include <tf2/transform_datatypes.h>
@@ -32,7 +32,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 
-#include <wolf_navigation/estimators.h>
+#include "wolf_navigation_utils/estimators.h"
 
 namespace wolf_navigation {
 

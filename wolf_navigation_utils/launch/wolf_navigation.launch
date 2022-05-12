@@ -20,7 +20,7 @@
     <arg name="depth_camera_name" value="d435"/>
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
     <arg name="mapping" default="false" />
-    <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
+    <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name)_map.yaml" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
@@ -36,7 +36,7 @@
     </include>
 
     <!-- run AMCL localization -->
-    <include file="$(find wolf_navigation)/launch/wolf_localization.launch" unless="$(arg mapping)">
+    <include file="$(find wolf_navigation_utils)/launch/wolf_localization.launch" unless="$(arg mapping)">
         <arg name="base_frame" default="$(arg base_frame)"/>
         <arg name="odom_frame" default="$(arg odom_frame)"/>
         <arg name="scan_topic" default="$(arg scan_topic)"/>
@@ -57,10 +57,10 @@
     </node>
 
     <!-- Run follow waypoints node -->
-    <node pkg="wolf_navigation" type="follow_waypoints_node" respawn="false" name="follow_waypoints_node" output="screen"/>
+    <node pkg="wolf_waypoints" type="follow_waypoints_node" respawn="false" name="follow_waypoints_node" output="screen"/>
 
     <!-- Run exploration node -->
-    <node pkg="wolf_navigation" type="exploration_node" respawn="false" name="exploration_node" output="screen">
+    <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">
       <param name="robot_base_frame" value="base_footprint"/>
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>

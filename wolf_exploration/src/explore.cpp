@@ -35,9 +35,11 @@
  *
  *********************************************************************/
 
-#include <explore/explore.h>
+#include "wolf_exploration/explore.h"
 
 #include <thread>
+
+#include <rt_gui/rt_gui_client.h>
 
 inline static bool operator==(const geometry_msgs::Point& one,
                               const geometry_msgs::Point& two)
@@ -85,6 +87,9 @@ Explore::Explore()
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
                                [this](const ros::TimerEvent&) { makePlan(); });
+
+  ROS_INFO("Exploration in stand-by");
+  exploring_timer_.stop();
 }
 
 Explore::~Explore()
@@ -294,14 +299,25 @@ void Explore::stop()
 
 }  // namespace explore
 
+using namespace rt_gui;
+
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "explore");
+  ros::init(argc, argv, "explore_node");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
                                      ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
+
   explore::Explore explore;
+
+  // create interface
+  if(RtGuiClient::getIstance().init("wolf_panel","explore"))
+  {
+    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),&_running);
+    RtGuiClient::getIstance().addBool(std::string("explore"),std::string("Stop"),&_patrol_mode);
+  }
+
   ros::spin();
 
   return 0;

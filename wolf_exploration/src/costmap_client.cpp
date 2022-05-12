@@ -34,7 +34,7 @@
  *
  *********************************************************************/
 
-#include <explore/costmap_client.h>
+#include "wolf_exploration/costmap_client.h"
 
 #include <functional>
 #include <mutex>

@@ -12,7 +12,7 @@
     <arg name="y_init_pose" default="0"/>
     <arg name="z_init_pose" default="0"/>
     <arg name="yaw_init_pose" default="0"/>
-    <arg name="map_file" default="$(find wolf_navigation)/maps/$(arg world_name)_map.yaml" />
+    <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name)_map.yaml" />
     <arg name="robot_params" default="" />
 
     <!--Map loading -->
@@ -24,7 +24,7 @@
     <rosparam command="load" file="$(arg robot_params)/odom_params.yaml" ns="odom_publisher_node" subst_value="true"/>
 
     <!-- start odom node -->
-    <node name="odom_publisher_node" pkg="wolf_navigation" type="odom_publisher_node" output="screen"  respawn="false" />
+    <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false" />
 
     <!-- AMCL -->
     <node pkg="amcl" type="amcl" name="amcl" output="screen">

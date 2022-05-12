@@ -1,5 +1,5 @@
-#ifndef WOLF_NAVIGATION_WAYPOINT_H
-#define WOLF_NAVIGATION_WAYPOINT_H
+#ifndef WOLF_WAYPOINTS_WAYPOINT_H
+#define WOLF_WAYPOINTS_WAYPOINT_H
 
 #include <ros/ros.h>
 #include <ros/time.h>

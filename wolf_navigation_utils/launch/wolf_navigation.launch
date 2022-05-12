@@ -20,7 +20,6 @@
     <arg name="depth_camera_name" value="d435"/>
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
     <arg name="mapping" default="false" />
-    <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name)_map.yaml" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
@@ -35,12 +34,17 @@
         <arg name="scan_topic" default="$(arg scan_topic)"/>
     </include>
 
+    <!-- start odom node -->
+    <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false">
+        <rosparam file="$(arg robot_params)/odom_params.yaml" command="load" subst_value="true"/>
+    </node>
+
     <!-- run AMCL localization -->
     <include file="$(find wolf_navigation_utils)/launch/wolf_localization.launch" unless="$(arg mapping)">
         <arg name="base_frame" default="$(arg base_frame)"/>
         <arg name="odom_frame" default="$(arg odom_frame)"/>
         <arg name="scan_topic" default="$(arg scan_topic)"/>
-        <arg name="map_file" default="$(arg map_file)" />
+        <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name)_map.yaml" />
         <arg name="robot_params" default="$(arg robot_params)" />
     </include>
 
@@ -91,11 +95,5 @@
 
     <!-- rviz -->
     <node name="wolf_rviz" pkg="rviz" type="rviz" output="screen"
-          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"
-          if="$(arg mapping)"/>
-
-    <node name="wolf_rviz" pkg="rviz" type="rviz" output="screen"
-          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav_loc.rviz')"
-          unless="$(arg mapping)"/>
-
+          args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"/>
 </launch>

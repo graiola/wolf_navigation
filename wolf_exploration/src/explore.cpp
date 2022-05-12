@@ -288,6 +288,7 @@ void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
 void Explore::start()
 {
   exploring_timer_.start();
+  ROS_INFO("Exploration started.");
 }
 
 void Explore::stop()
@@ -304,21 +305,21 @@ using namespace rt_gui;
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "explore_node");
-  if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                     ros::console::levels::Debug)) {
-    ros::console::notifyLoggerLevelsChanged();
-  }
+  //if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
+  //                                   ros::console::levels::Debug)) {
+  //  ros::console::notifyLoggerLevelsChanged();
+  //}
 
   explore::Explore explore;
 
   // create interface
   if(RtGuiClient::getIstance().init("wolf_panel","explore"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),&_running);
-    RtGuiClient::getIstance().addBool(std::string("explore"),std::string("Stop"),&_patrol_mode);
+    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore));
+    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
   }
 
-  ros::spin();
+  ros::waitForShutdown();
 
   return 0;
 }

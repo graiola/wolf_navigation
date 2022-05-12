@@ -20,12 +20,6 @@
         <param name="frame_id" value="$(arg global_frame)"/>
     </node>
 
-    <!--load odom params-->
-    <rosparam command="load" file="$(arg robot_params)/odom_params.yaml" ns="odom_publisher_node" subst_value="true"/>
-
-    <!-- start odom node -->
-    <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false" />
-
     <!-- AMCL -->
     <node pkg="amcl" type="amcl" name="amcl" output="screen">
         <remap from="scan" to="$(arg scan_topic)"/>

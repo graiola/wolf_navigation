@@ -288,14 +288,14 @@ void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
 void Explore::start()
 {
   exploring_timer_.start();
-  ROS_INFO("Exploration started.");
+  ROS_INFO("Exploration started");
 }
 
 void Explore::stop()
 {
   move_base_client_.cancelAllGoals();
   exploring_timer_.stop();
-  ROS_INFO("Exploration stopped.");
+  ROS_INFO("Exploration stopped");
 }
 
 }  // namespace explore

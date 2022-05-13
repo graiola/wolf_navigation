@@ -34,12 +34,12 @@
         <arg name="scan_topic" default="$(arg scan_topic)"/>
     </include>
 
-    <!-- start odom node -->
+    <!-- Start odom node -->
     <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false">
         <rosparam file="$(arg robot_params)/odom_params.yaml" command="load" subst_value="true"/>
     </node>
 
-    <!-- run AMCL localization -->
+    <!-- Run AMCL localization -->
     <include file="$(find wolf_navigation_utils)/launch/wolf_localization.launch" unless="$(arg mapping)">
         <arg name="base_frame" default="$(arg base_frame)"/>
         <arg name="odom_frame" default="$(arg odom_frame)"/>
@@ -93,7 +93,7 @@
         <arg name="engine" value="$(arg engine)"/>
     </include>
 
-    <!-- rviz -->
+    <!-- Rviz -->
     <node name="wolf_rviz" pkg="rviz" type="rviz" output="screen"
           args="$(eval '-d '+find(arg('robot_name')+'_description')+'/rviz/'+arg('robot_name')+'_nav.rviz')"/>
 </launch>

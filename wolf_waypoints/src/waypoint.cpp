@@ -71,7 +71,7 @@ void Waypoint::createMarker(const unsigned int& id, const move_base_msgs::MoveBa
   marker_.scale.y = 0.25;
   marker_.scale.z = 0.25;
   marker_.color.a = 1.0;
-  marker_.mesh_resource = "package://wolf_navigation/media/waypoint.dae";
+  marker_.mesh_resource = "package://wolf_waypoints/media/waypoint.dae";
 }
 
 

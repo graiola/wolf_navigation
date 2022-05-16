@@ -58,12 +58,12 @@
 
     <!-- Run move base -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(arg robot_params)/costmap_common_params.yaml" command="load" ns="global_costmap" subst_value="true"/>
-        <rosparam file="$(arg robot_params)/costmap_common_params.yaml" command="load" ns="local_costmap" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="global_costmap" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="local_costmap" subst_value="true"/>
         <rosparam file="$(arg robot_params)/move_base_params.yaml" command="load" subst_value="true"/>
         <rosparam file="$(arg robot_params)/local_costmap_params.yaml" command="load" subst_value="true"/>
         <rosparam file="$(arg robot_params)/global_costmap_params.yaml" command="load" subst_value="true"/>
-        <rosparam file="$(arg robot_params)/base_local_planner_params.yaml" command="load" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/planners_params.yaml" command="load" subst_value="true"/>
         <param name="base_local_planner" value="$(arg local_planner)"/>
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>

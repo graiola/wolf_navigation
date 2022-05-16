@@ -158,6 +158,10 @@ void Explore::visualizeFrontiers(
     m.type = visualization_msgs::Marker::SPHERE;
     m.id = int(id);
     m.pose.position = frontier.initial;
+    m.pose.orientation.x = 0.0;
+    m.pose.orientation.y = 0.0;
+    m.pose.orientation.z = 0.0;
+    m.pose.orientation.w = 1.0;
     // scale frontier according to its cost (costier frontiers will be smaller)
     double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     m.scale.x = scale;
@@ -247,6 +251,7 @@ void Explore::makePlan()
                 const move_base_msgs::MoveBaseResultConstPtr& result) {
         reachedGoal(status, result, target_position);
       });
+  ROS_INFO_STREAM("Send exploration goal at: " << target_position.x << " " << target_position.y << " " << target_position.z );
 }
 
 bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)

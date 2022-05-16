@@ -41,6 +41,8 @@
 
 #include <rt_gui/rt_gui_client.h>
 
+#define NODE_NAME "explore"
+
 inline static bool operator==(const geometry_msgs::Point& one,
                               const geometry_msgs::Point& two)
 {
@@ -80,15 +82,15 @@ Explore::Explore()
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 
-  ROS_INFO("Waiting to connect to move_base server");
+  ROS_INFO_NAMED(NODE_NAME,"Waiting to connect to move_base server");
   move_base_client_.waitForServer();
-  ROS_INFO("Connected to move_base server");
+  ROS_INFO_NAMED(NODE_NAME,"Connected to move_base server");
 
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
                                [this](const ros::TimerEvent&) { makePlan(); });
 
-  ROS_INFO("Exploration in stand-by");
+  ROS_INFO_NAMED(NODE_NAME,"Exploration in stand-by");
   exploring_timer_.stop();
 }
 
@@ -197,6 +199,7 @@ void Explore::makePlan()
   }
 
   if (frontiers.empty()) {
+    ROS_INFO_NAMED(NODE_NAME,"No more frontiers left to explore");
     stop();
     return;
   }
@@ -229,7 +232,7 @@ void Explore::makePlan()
   // black list if we've made no progress for a long time
   if (ros::Time::now() - last_progress_ > progress_timeout_) {
     frontier_blacklist_.push_back(target_position);
-    ROS_DEBUG("Adding current goal to black list");
+    ROS_INFO_NAMED(NODE_NAME,"Adding current goal to black list");
     makePlan();
     return;
   }
@@ -251,7 +254,7 @@ void Explore::makePlan()
                 const move_base_msgs::MoveBaseResultConstPtr& result) {
         reachedGoal(status, result, target_position);
       });
-  ROS_INFO_STREAM("Send exploration goal at: " << target_position.x << " " << target_position.y << " " << target_position.z );
+  ROS_INFO_STREAM_NAMED(NODE_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
 }
 
 bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)

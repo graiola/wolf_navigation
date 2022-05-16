@@ -24,15 +24,23 @@
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
         <remap from="cloud_in" to="/$(arg velodyne_pointcloud_topic)"/>
+        <param name="use_inf" value="false"/>
+        <param name="range_max" value="200"/>
     </node>
 
-    <!-- Run hector slam -->
-    <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">
+    <!-- Run hector slam (this can be useful if we don't have any odometry but it has problems if the robot rotates too fast) -->
+    <!--  <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">
         <arg name="base_frame" default="$(arg base_frame)"/>
         <arg name="odom_frame" default="$(arg odom_frame)"/>
         <arg name="pub_map_odom_transform" default="true"/>
         <arg name="scan_topic" default="$(arg scan_topic)"/>
-    </include>
+    </include> -->
+    <!-- Run gmapping slam -->
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" >
+      <remap from="scan" to="$(arg scan_topic)" />
+      <remap from="base_link" to="$(arg base_frame)" />
+      <remap from="odom" to="$(arg odom_frame)" />
+    </node>
 
     <!-- Start odom node -->
     <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false">

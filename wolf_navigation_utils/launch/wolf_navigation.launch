@@ -12,6 +12,7 @@
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />
     <arg name="local_planner" default="dwa_local_planner/DWAPlannerROS" />
+    <arg name="global_planner" default="navfn/NavfnROS"/>
     <arg name="global_frame" value="map"/>
     <arg name="odom_frame" value="odom"/>
     <arg name="base_frame" value="base_footprint"/>
@@ -36,7 +37,7 @@
         <arg name="scan_topic" default="$(arg scan_topic)"/>
     </include> -->
     <!-- Run gmapping slam -->
-    <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" >
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" if="$(arg mapping)">
       <remap from="scan" to="$(arg scan_topic)" />
       <remap from="base_link" to="$(arg base_frame)" />
       <remap from="odom" to="$(arg odom_frame)" />
@@ -65,6 +66,7 @@
         <rosparam file="$(arg robot_params)/global_costmap_params.yaml" command="load" subst_value="true"/>
         <rosparam file="$(arg robot_params)/planners_params.yaml" command="load" subst_value="true"/>
         <param name="base_local_planner" value="$(arg local_planner)"/>
+        <param name="base_global_planner" value="$(arg global_planner)"/>
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>
 
@@ -74,8 +76,8 @@
     <!-- Run exploration node -->
     <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">
       <param name="robot_base_frame" value="$(arg base_frame)"/>
-      <param name="costmap_topic" value="/move_base/global_costmap/costmap"/>
-      <param name="costmap_updates_topic" value="/move_base/global_costmap/costmap_updates"/>
+      <param name="costmap_topic" value="map"/>
+      <param name="costmap_updates_topic" value="map_updates"/>
       <param name="visualize" value="true"/>
       <param name="planner_frequency" value="0.33"/>
       <param name="progress_timeout" value="30.0"/>

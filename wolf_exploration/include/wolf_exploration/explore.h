@@ -64,17 +64,25 @@ public:
   Explore();
   ~Explore();
 
+  /**
+   * @brief  Start exploration
+   */
   void start();
+
+  /**
+   * @brief  Stop exploration
+   */
   void stop();
 
-private:
   /**
-   * @brief  Make a global plan
+   * @brief Make a global plan
    */
   void makePlan();
 
+private:
+
   /**
-   * @brief  Publish a frontiers as markers
+   * @brief Publish a frontiers as markers
    */
   void visualizeFrontiers(
       const std::vector<frontier_exploration::Frontier>& frontiers);
@@ -91,11 +99,8 @@ private:
   tf::TransformListener tf_listener_;
 
   Costmap2DClient costmap_client_;
-  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>
-      move_base_client_;
+  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
   frontier_exploration::FrontierSearch search_;
-  ros::Timer exploring_timer_;
-  ros::Timer oneshot_;
 
   std::vector<geometry_msgs::Point> frontier_blacklist_;
   geometry_msgs::Point prev_goal_;
@@ -108,6 +113,8 @@ private:
   double potential_scale_, orientation_scale_, gain_scale_;
   ros::Duration progress_timeout_;
   bool visualize_;
+
+  std::atomic<bool> running_;
 };
 }
 

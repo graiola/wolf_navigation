@@ -86,12 +86,11 @@ Explore::Explore()
   move_base_client_.waitForServer();
   ROS_INFO_NAMED(NODE_NAME,"Connected to move_base server");
 
-  exploring_timer_ =
-      relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
-                               [this](const ros::TimerEvent&) { makePlan(); });
+  //exploring_timer_ =
+  //    relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
+  //                             [this](const ros::TimerEvent&) { makePlan(); },false,false);
 
   ROS_INFO_NAMED(NODE_NAME,"Exploration in stand-by");
-  exploring_timer_.stop();
 }
 
 Explore::~Explore()
@@ -189,72 +188,80 @@ void Explore::visualizeFrontiers(
 
 void Explore::makePlan()
 {
-  // find frontiers
-  auto pose = costmap_client_.getRobotPose();
-  // get frontiers sorted according to cost
-  auto frontiers = search_.searchFrom(pose.position);
-  ROS_DEBUG("found %lu frontiers", frontiers.size());
-  for (size_t i = 0; i < frontiers.size(); ++i) {
-    ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
-  }
+  while(ros::ok())
+  {
+    if(running_)
+    {
+      // find frontiers
+      auto pose = costmap_client_.getRobotPose();
+      // get frontiers sorted according to cost
+      auto frontiers = search_.searchFrom(pose.position);
+      ROS_DEBUG("found %lu frontiers", frontiers.size());
+      for (size_t i = 0; i < frontiers.size(); ++i) {
+        ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
+      }
 
-  if (frontiers.empty()) {
-    ROS_INFO_NAMED(NODE_NAME,"No more frontiers left to explore");
-    stop();
-    return;
-  }
+      if (frontiers.empty()) {
+        ROS_INFO_NAMED(NODE_NAME,"No more frontiers left to explore");
+        stop();
+        continue;
+      }
 
-  // publish frontiers as visualization markers
-  if (visualize_) {
-    visualizeFrontiers(frontiers);
-  }
+      // publish frontiers as visualization markers
+      if (visualize_) {
+        visualizeFrontiers(frontiers);
+      }
 
-  // find non blacklisted frontier
-  auto frontier =
-      std::find_if_not(frontiers.begin(), frontiers.end(),
-                       [this](const frontier_exploration::Frontier& f) {
-                         return goalOnBlacklist(f.centroid);
-                       });
-  if (frontier == frontiers.end()) {
-    stop();
-    return;
-  }
-  geometry_msgs::Point target_position = frontier->centroid;
+      // find non blacklisted frontier
+      auto frontier =
+          std::find_if_not(frontiers.begin(), frontiers.end(),
+                           [this](const frontier_exploration::Frontier& f) {
+        return goalOnBlacklist(f.centroid);
+      });
+      if (frontier == frontiers.end()) {
+        stop();
+        continue;
+      }
+      geometry_msgs::Point target_position = frontier->centroid;
 
-  // time out if we are not making any progress
-  bool same_goal = prev_goal_ == target_position;
-  prev_goal_ = target_position;
-  if (!same_goal || prev_distance_ > frontier->min_distance) {
-    // we have different goal or we made some progress
-    last_progress_ = ros::Time::now();
-    prev_distance_ = frontier->min_distance;
-  }
-  // black list if we've made no progress for a long time
-  if (ros::Time::now() - last_progress_ > progress_timeout_) {
-    frontier_blacklist_.push_back(target_position);
-    ROS_INFO_NAMED(NODE_NAME,"Adding current goal to black list");
-    makePlan();
-    return;
-  }
+      // time out if we are not making any progress
+      bool same_goal = prev_goal_ == target_position;
+      prev_goal_ = target_position;
+      if (!same_goal || prev_distance_ > frontier->min_distance) {
+        // we have different goal or we made some progress
+        last_progress_ = ros::Time::now();
+        prev_distance_ = frontier->min_distance;
+      }
+      // black list if we've made no progress for a long time
+      if (ros::Time::now() - last_progress_ > progress_timeout_) {
+        frontier_blacklist_.push_back(target_position);
+        ROS_INFO_NAMED(NODE_NAME,"Adding current goal to black list");
+        makePlan();
+        continue;
+      }
 
-  // we don't need to do anything if we still pursuing the same goal
-  if (same_goal) {
-    return;
-  }
+      // we don't need to do anything if we still pursuing the same goal
+      if (same_goal) {
+        continue;
+      }
 
-  // send goal to move_base if we have something new to pursue
-  move_base_msgs::MoveBaseGoal goal;
-  goal.target_pose.pose.position = target_position;
-  goal.target_pose.pose.orientation.w = 1.;
-  goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
-  goal.target_pose.header.stamp = ros::Time::now();
-  move_base_client_.sendGoal(
-      goal, [this, target_position](
-                const actionlib::SimpleClientGoalState& status,
-                const move_base_msgs::MoveBaseResultConstPtr& result) {
+      // send goal to move_base if we have something new to pursue
+      move_base_msgs::MoveBaseGoal goal;
+      goal.target_pose.pose.position = target_position;
+      goal.target_pose.pose.orientation.w = 1.;
+      goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
+      goal.target_pose.header.stamp = ros::Time::now();
+      move_base_client_.sendGoal(
+            goal, [this, target_position](
+            const actionlib::SimpleClientGoalState& status,
+            const move_base_msgs::MoveBaseResultConstPtr& result) {
         reachedGoal(status, result, target_position);
       });
-  ROS_INFO_STREAM_NAMED(NODE_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+      ROS_INFO_STREAM_NAMED(NODE_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+    } // running_
+
+    ros::Duration(1. / planner_frequency_).sleep();
+  } // while(ros::ok())
 }
 
 bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
@@ -288,21 +295,21 @@ void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
   // execute via timer to prevent dead lock in move_base_client (this is
   // callback for sendGoal, which is called in makePlan). the timer must live
   // until callback is executed.
-  oneshot_ = relative_nh_.createTimer(
-      ros::Duration(0, 0), [this](const ros::TimerEvent&) { makePlan(); },
-      true);
+  //oneshot_ = relative_nh_.createTimer(
+  //    ros::Duration(0, 0), [this](const ros::TimerEvent&) { makePlan(); },
+  //    true);
 }
 
 void Explore::start()
 {
-  exploring_timer_.start();
+  running_ = true;
   ROS_INFO("Exploration started");
 }
 
 void Explore::stop()
 {
+  running_ = false;
   move_base_client_.cancelAllGoals();
-  exploring_timer_.stop();
   ROS_INFO("Exploration stopped");
 }
 
@@ -327,7 +334,16 @@ int main(int argc, char** argv)
     RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
   }
 
-  ros::waitForShutdown();
+  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore));
+
+  ros::Rate rate(50.0);
+  while(ros::ok())
+  {
+    RtGuiClient::getIstance().sync();
+    rate.sleep();
+  }
+
+  exploration_loop.join();
 
   return 0;
 }

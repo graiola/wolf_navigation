@@ -37,6 +37,8 @@ public:
 
   void createMenuEntry(const interactive_markers::MenuHandler::FeedbackCallback &f, interactive_markers::InteractiveMarkerServer &interactive_marker_server);
 
+  void updateGoal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
 private:
 
   void createInteractiveMarker(const visualization_msgs::Marker& marker);

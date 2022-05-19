@@ -34,7 +34,7 @@ static double _wait_duration = 360.0;
 static std::shared_ptr<MoveBaseClient> _move_base;
 static Waypoints::Ptr _waypoints;
 
-#define NODE_NAME "follow_waypoints_node"
+#define NODE_NAME "waypoints_node"
 
 void callback(const geometry_msgs::PoseStamped& waypoint)
 {
@@ -118,12 +118,12 @@ int main(int argc, char** argv)
   ros::Subscriber sub = n.subscribe("waypoints", 1000, callback);
 
   // create interface
-  if(RtGuiClient::getIstance().init("wolf_panel","follow_waypoints"))
+  if(RtGuiClient::getIstance().init("wolf_panel","waypoints"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Start"),&start);
-    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Stop"),&stop);
-    RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Patrol mode"),&_patrol_mode);
-    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Reset"),&reset);
+    RtGuiClient::getIstance().addTrigger(std::string("waypoints"),std::string("Start"),&start);
+    RtGuiClient::getIstance().addTrigger(std::string("waypoints"),std::string("Stop"),&stop);
+    RtGuiClient::getIstance().addBool(std::string("waypoints"),std::string("Patrol mode"),&_patrol_mode);
+    RtGuiClient::getIstance().addTrigger(std::string("waypoints"),std::string("Reset"),&reset);
   }
 
   std::thread navigation_loop(loop);

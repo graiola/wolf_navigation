@@ -71,8 +71,8 @@
         <remap from="cmd_vel" to="/$(arg robot_name)/wolf_controller/twist"/>
     </node>
 
-    <!-- Run follow waypoints node -->
-    <node pkg="wolf_waypoints" type="follow_waypoints_node" respawn="false" name="follow_waypoints_node" output="screen"/>
+    <!-- Run waypoints node -->
+    <node pkg="wolf_waypoints" type="waypoints_node" respawn="false" name="waypoints_node" output="screen"/>
 
     <!-- Run exploration node -->
     <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">

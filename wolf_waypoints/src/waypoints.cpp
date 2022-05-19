@@ -28,6 +28,8 @@ void Waypoints::addWaypoint(const move_base_msgs::MoveBaseGoal& goal)
   // Visualize waypoint
   interactive_marker_server_->insert(list_.back()->getInteractiveMarker());
   list_.back()->createMenuEntry(boost::bind(&Waypoints::removeWaypoint,this,list_.back()->getId()),*interactive_marker_server_);
+  interactive_marker_server_->setCallback(list_.back()->getName(),boost::bind(&Waypoint::updateGoal,list_.back(),_1));
+
   interactive_marker_server_->applyChanges();
 }
 
@@ -152,7 +154,7 @@ void Waypoints::removeWaypoint(const int &id)
 
     ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", id);
     interactive_marker_server_->applyChanges();
-    list_.erase(list_.begin()+id-1);
+    list_.erase(list_.begin()+idx_to_remove);
   }
 }
 

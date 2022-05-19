@@ -20,10 +20,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(follow_waypoints_node src/follow_waypoints_node.cpp src/waypoints.cpp src/waypoint.cpp)
-target_link_libraries(follow_waypoints_node ${catkin_LIBRARIES})
+add_executable(waypoints_node src/waypoints_node.cpp src/waypoints.cpp src/waypoint.cpp)
+target_link_libraries(waypoints_node ${catkin_LIBRARIES})
 
-install(TARGETS follow_waypoints_node
+install(TARGETS waypoints_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

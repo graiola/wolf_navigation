@@ -40,9 +40,15 @@ public:
 
   int getCurrentWaypointId();
 
+  void cancelGoal();
+
+  void cancelAllGoals();
+
   void removeCurrentWaypoint();
 
   void removeWaypoint(const int &id);
+
+  void removeAllWaypoints();
 
   void moveToNextWaypoint();
 

@@ -41,6 +41,26 @@ void callback(const geometry_msgs::PoseStamped& waypoint)
   _waypoints->addWaypoint(waypoint);
 }
 
+void start()
+{
+  ROS_INFO_NAMED(NODE_NAME,"Start following waypoints");
+  _running = true;
+}
+
+void stop()
+{
+  ROS_INFO_NAMED(NODE_NAME,"Stop following waypoints");
+  _running = false;
+  _waypoints->cancelAllGoals();
+}
+
+void reset()
+{
+  ROS_INFO_NAMED(NODE_NAME,"Reset all waypoints");
+  _running = false;
+  _waypoints->removeAllWaypoints();
+}
+
 void loop()
 {
 
@@ -100,8 +120,10 @@ int main(int argc, char** argv)
   // create interface
   if(RtGuiClient::getIstance().init("wolf_panel","follow_waypoints"))
   {
-    RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Running"),&_running);
+    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Start"),&start);
+    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Stop"),&stop);
     RtGuiClient::getIstance().addBool(std::string("follow_waypoints"),std::string("Patrol mode"),&_patrol_mode);
+    RtGuiClient::getIstance().addTrigger(std::string("follow_waypoints"),std::string("Reset"),&reset);
   }
 
   std::thread navigation_loop(loop);

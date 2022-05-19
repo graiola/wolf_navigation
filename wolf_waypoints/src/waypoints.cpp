@@ -102,16 +102,40 @@ int Waypoints::getCurrentWaypointId()
     return -1;
 }
 
+void Waypoints::cancelGoal()
+{
+  move_base_->cancelGoal();
+}
+
+void Waypoints::cancelAllGoals()
+{
+  move_base_->cancelAllGoals();
+}
+
+
 void Waypoints::removeCurrentWaypoint()
 {
   std::lock_guard<std::mutex> lk(mtx_);
   if(interactive_marker_server_->erase(list_.front()->getName()))
   {
-    move_base_->cancelGoal();
+    cancelGoal();
     ROS_INFO_NAMED(CLASS_NAME,"Remove current waypoint %i ", list_.front()->getId());
     interactive_marker_server_->applyChanges();
     list_.pop_front();
   }
+}
+
+void Waypoints::removeAllWaypoints()
+{
+  std::lock_guard<std::mutex> lk(mtx_);
+  cancelAllGoals();
+  for(unsigned int i=0; i<list_.size(); i++)
+  {
+    interactive_marker_server_->erase(list_[static_cast<unsigned int>(i)]->getName());
+    ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", list_[i]->getId());
+  }
+  list_.clear();
+  interactive_marker_server_->applyChanges();
 }
 
 void Waypoints::removeWaypoint(const int &id)
@@ -124,7 +148,7 @@ void Waypoints::removeWaypoint(const int &id)
   if(idx_to_remove != -1 && interactive_marker_server_->erase(list_[static_cast<unsigned int>(idx_to_remove)]->getName()))
   {
     if(idx_to_remove == 0)
-      move_base_->cancelGoal();
+      cancelGoal();
 
     ROS_INFO_NAMED(CLASS_NAME,"Remove waypoint %i ", id);
     interactive_marker_server_->applyChanges();

@@ -20,6 +20,7 @@
     <arg name="velodyne_pointcloud_topic" value="velodyne_pointcloud"/>
     <arg name="depth_camera_name" value="d435"/>
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
+    <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
     <arg name="mapping" default="false" />
 
     <!-- Convert from PointCould2 to Laserscan -->
@@ -53,7 +54,7 @@
         <arg name="base_frame" default="$(arg base_frame)"/>
         <arg name="odom_frame" default="$(arg odom_frame)"/>
         <arg name="scan_topic" default="$(arg scan_topic)"/>
-        <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name)_map.yaml" />
+        <arg name="map_file" default="$(arg map_file)" />
         <arg name="robot_params" default="$(arg robot_params)" />
     </include>
 

@@ -48,20 +48,26 @@ include_directories(
   include
 )
 
-add_executable(explore_node
+add_library(explore
   src/costmap_client.cpp
   src/explore.cpp
   src/frontier_search.cpp
 )
+add_dependencies(explore ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(explore ${catkin_LIBRARIES})
+
+add_executable(explore_node
+  src/explore_node.cpp
+)
 add_dependencies(explore_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(explore_node ${catkin_LIBRARIES})
+target_link_libraries(explore_node explore ${catkin_LIBRARIES})
 
 #############
 ## Install ##
 #############
 
 # install nodes
-install(TARGETS explore_node
+install(TARGETS explore explore_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

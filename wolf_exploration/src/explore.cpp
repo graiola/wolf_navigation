@@ -37,12 +37,6 @@
 
 #include "wolf_exploration/explore.h"
 
-#include <thread>
-
-#include <rt_gui/rt_gui_client.h>
-
-#define NODE_NAME "explore"
-
 inline static bool operator==(const geometry_msgs::Point& one,
                               const geometry_msgs::Point& two)
 {
@@ -82,15 +76,15 @@ Explore::Explore()
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 
-  ROS_INFO_NAMED(NODE_NAME,"Waiting to connect to move_base server");
+  ROS_INFO("Waiting to connect to move_base server");
   move_base_client_.waitForServer();
-  ROS_INFO_NAMED(NODE_NAME,"Connected to move_base server");
+  ROS_INFO("Connected to move_base server");
 
   //exploring_timer_ =
   //    relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
   //                             [this](const ros::TimerEvent&) { makePlan(); },false,false);
 
-  ROS_INFO_NAMED(NODE_NAME,"Exploration in stand-by");
+  ROS_INFO("Exploration in stand-by");
 }
 
 Explore::~Explore()
@@ -202,7 +196,7 @@ void Explore::makePlan()
       }
 
       if (frontiers.empty()) {
-        ROS_INFO_NAMED(NODE_NAME,"No more frontiers left to explore");
+        ROS_INFO("No more frontiers left to explore");
         stop();
         continue;
       }
@@ -235,7 +229,7 @@ void Explore::makePlan()
       // black list if we've made no progress for a long time
       if (ros::Time::now() - last_progress_ > progress_timeout_) {
         frontier_blacklist_.push_back(target_position);
-        ROS_INFO_NAMED(NODE_NAME,"Adding current goal to black list");
+        ROS_INFO("Adding current goal to black list");
         makePlan();
         continue;
       }
@@ -257,7 +251,7 @@ void Explore::makePlan()
             const move_base_msgs::MoveBaseResultConstPtr& result) {
         reachedGoal(status, result, target_position);
       });
-      ROS_INFO_STREAM_NAMED(NODE_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+      ROS_INFO_STREAM("Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
     } // running_
 
     ros::Duration(1. / planner_frequency_).sleep();
@@ -314,36 +308,3 @@ void Explore::stop()
 }
 
 }  // namespace explore
-
-using namespace rt_gui;
-
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "explore_node");
-  //if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-  //                                   ros::console::levels::Debug)) {
-  //  ros::console::notifyLoggerLevelsChanged();
-  //}
-
-  explore::Explore explore;
-
-  // create interface
-  if(RtGuiClient::getIstance().init("wolf_panel","explore"))
-  {
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore));
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
-  }
-
-  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore));
-
-  ros::Rate rate(50.0);
-  while(ros::ok())
-  {
-    RtGuiClient::getIstance().sync();
-    rate.sleep();
-  }
-
-  exploration_loop.join();
-
-  return 0;
-}

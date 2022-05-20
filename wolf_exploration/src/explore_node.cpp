@@ -39,8 +39,8 @@ class MapGenerator
 {
 
   public:
-    MapGenerator(const std::string& mapname, int threshold_occupied, int threshold_free)
-      : mapname_(mapname), saved_map_(false), threshold_occupied_(threshold_occupied), threshold_free_(threshold_free)
+    MapGenerator(const std::string& mapname, const std::string& path, int threshold_occupied, int threshold_free)
+      : mapname_(mapname), path_(path), saved_map_(false), threshold_occupied_(threshold_occupied), threshold_free_(threshold_free)
     {
       ros::NodeHandle n;
       ROS_INFO("Waiting for the map");
@@ -55,7 +55,7 @@ class MapGenerator
                map->info.resolution);
 
 
-      std::string mapdatafile = "/tmp/"+mapname_ + ".pgm";
+      std::string mapdatafile = path_ + mapname_ + ".pgm";
       ROS_INFO("Writing map occupancy data to %s", mapdatafile.c_str());
       FILE* out = fopen(mapdatafile.c_str(), "w");
       if (!out)
@@ -64,7 +64,7 @@ class MapGenerator
         return;
       }
 
-      fprintf(out, "P5\n# CREATOR: map_saver.cpp %.3f m/pix\n%d %d\n255\n",
+      fprintf(out, "P5\n# CREATOR: explore_node.cpp %.3f m/pix\n%d %d\n255\n",
               map->info.resolution, map->info.width, map->info.height);
       for(unsigned int y = 0; y < map->info.height; y++) {
         for(unsigned int x = 0; x < map->info.width; x++) {
@@ -82,7 +82,7 @@ class MapGenerator
       fclose(out);
 
 
-      std::string mapmetadatafile = "/tmp/"+mapname_ + ".yaml";
+      std::string mapmetadatafile = path_ + mapname_ + ".yaml";
       ROS_INFO("Writing map occupancy data to %s", mapmetadatafile.c_str());
       FILE* yaml = fopen(mapmetadatafile.c_str(), "w");
 
@@ -107,7 +107,7 @@ free_thresh: 0.196
       mat.getEulerYPR(yaw, pitch, roll);
 
       fprintf(yaml, "image: %s\nresolution: %f\norigin: [%f, %f, %f]\nnegate: 0\noccupied_thresh: 0.65\nfree_thresh: 0.196\n\n",
-              mapdatafile.c_str(), map->info.resolution, map->info.origin.position.x, map->info.origin.position.y, yaw);
+              std::string(mapname_ + ".pgm").c_str(), map->info.resolution, map->info.origin.position.x, map->info.origin.position.y, yaw);
 
       fclose(yaml);
 
@@ -116,6 +116,7 @@ free_thresh: 0.196
     }
 
     std::string mapname_;
+    std::string path_;
     ros::Subscriber map_sub_;
     bool saved_map_;
     int threshold_occupied_;
@@ -126,12 +127,13 @@ free_thresh: 0.196
 
 using namespace rt_gui;
 
-void saveExploredMap()
+void saveExploredMap(std::string mapname)
 {
-  std::string mapname = "map";
+
+  std::string path = "/tmp/";
   int threshold_occupied = 65;
   int threshold_free = 25;
-  MapGenerator mg(mapname, threshold_occupied, threshold_free);
+  MapGenerator mg(mapname, path, threshold_occupied, threshold_free);
 
   while(!mg.saved_map_ && ros::ok())
     ros::spinOnce();
@@ -148,11 +150,12 @@ int main(int argc, char** argv)
   explore::Explore explore;
 
   // create interface
+  ros::param::set("/explore/save_map_to","map");
   if(RtGuiClient::getIstance().init("wolf_panel","explore"))
   {
     RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore));
     RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Save map"),&saveExploredMap);
+    RtGuiClient::getIstance().addText(std::string("explore"),std::string("save_map_to"),&saveExploredMap,false);
   }
 
   std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore));

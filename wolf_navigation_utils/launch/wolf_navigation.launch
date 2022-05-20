@@ -21,7 +21,7 @@
     <arg name="depth_camera_name" value="d435"/>
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
     <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
-    <arg name="mapping" default="false" />
+    <arg name="mapping" default="true" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">

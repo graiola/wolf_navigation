@@ -13,7 +13,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>wolf_controller</run_depend>
-  <run_depend>hector_mapping</run_depend>
+  <run_depend>gmapping</run_depend>
   <run_depend>pointcloud_to_laserscan</run_depend>
 
   <build_depend>roscpp</build_depend>

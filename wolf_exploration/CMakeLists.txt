@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   visualization_msgs
   rt_gui
+  costmap_converter
 )
 
 ###################################
@@ -63,12 +64,18 @@ add_executable(explore_node
 add_dependencies(explore_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(explore_node explore ${catkin_LIBRARIES})
 
+add_executable(artifacts_search
+  src/artifacts_search.cpp
+)
+add_dependencies(artifacts_search ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(artifacts_search ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
 
 # install nodes
-install(TARGETS explore explore_node
+install(TARGETS explore explore_node artifacts_search
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -30,6 +30,7 @@
   <depend>costmap_2d</depend>
   <depend>actionlib</depend>
   <depend>rt_gui</depend>
+  <depend>costmap_converter</depend>
 
   <test_depend>roslaunch</test_depend>
 </package>

@@ -34,8 +34,8 @@
  *
  *********************************************************************/
 
-#ifndef COSTMAP_CLIENT_
-#define COSTMAP_CLIENT_
+#ifndef COSTMAP_CLIENT_H
+#define COSTMAP_CLIENT_H
 
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Pose.h>

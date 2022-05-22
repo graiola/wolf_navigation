@@ -1,5 +1,5 @@
-#ifndef COSTMAP_TOOLS_H_
-#define COSTMAP_TOOLS_H_
+#ifndef COSTMAP_TOOLS_H
+#define COSTMAP_TOOLS_H
 
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PointStamped.h>

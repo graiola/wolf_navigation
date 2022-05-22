@@ -50,6 +50,7 @@ include_directories(
 
 add_library(explore
   src/costmap_client.cpp
+  src/costmap_server.cpp
   src/explore.cpp
   src/frontier_search.cpp
 )

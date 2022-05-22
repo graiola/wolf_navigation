@@ -34,8 +34,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  *********************************************************************/
-#ifndef NAV_EXPLORE_H_
-#define NAV_EXPLORE_H_
+#ifndef NAV_EXPLORE_H
+#define NAV_EXPLORE_H
 
 #include <memory>
 #include <mutex>

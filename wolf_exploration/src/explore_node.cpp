@@ -18,6 +18,7 @@
 */
 
 #include "wolf_exploration/explore.h"
+#include "wolf_exploration/costmap_server.h"
 
 #include <thread>
 #include <rt_gui/rt_gui_client.h>
@@ -147,18 +148,21 @@ int main(int argc, char** argv)
   //  ros::console::notifyLoggerLevelsChanged();
   //}
 
-  explore::Explore explore;
+  explore::Explore explore_map;
+  explore::Costmap2DServer costmap_server;
 
   // create interface
   ros::param::set("/explore/save_map_to","map");
   if(RtGuiClient::getIstance().init("wolf_panel","explore"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore));
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
+    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore_map));
+    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore_map));
     RtGuiClient::getIstance().addText(std::string("explore"),std::string("save_map_to"),&saveExploredMap,false);
   }
 
-  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore));
+  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore_map));
+
+  costmap_server.start();
 
   ros::Rate rate(50.0);
   while(ros::ok())
@@ -168,6 +172,7 @@ int main(int argc, char** argv)
   }
 
   exploration_loop.join();
+  costmap_server.stop();
 
   return 0;
 }

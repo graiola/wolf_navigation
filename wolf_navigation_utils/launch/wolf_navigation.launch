@@ -89,6 +89,17 @@
       <param name="min_frontier_size" value="0.75"/>
     </node>
 
+    <node pkg="wolf_exploration" type="artifacts_search" respawn="false" name="artifacts_search" output="screen">
+      <param name="converter_plugin" value="costmap_converter::CostmapToPolygonsDBSMCCH"/>
+      <param name="robot_base_frame" value="$(arg base_frame)"/>
+      <param name="costmap_topic" value="/move_base/local_costmap/costmap"/>
+      <param name="costmap_updates_topic" value="/move_base/local_costmap/costmap_updates"/>
+      <param name="obstacles_topic" value="costmap_obstacles"/>
+      <param name="polygon_marker_topic" value="costmap_polygon_markers"/>
+      <param name="odom_topic" value="$(arg odom_frame)"/>
+      <param name="occupied_min_value" value="100"/>
+    </node>
+
     <!-- Launch the controller -->
     <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch" if="$(arg launch_controller)" >
         <arg name="sensors" value="true" />

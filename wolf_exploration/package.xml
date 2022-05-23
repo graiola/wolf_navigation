@@ -31,6 +31,7 @@
   <depend>actionlib</depend>
   <depend>rt_gui</depend>
   <depend>costmap_converter</depend>
+  <depend>wolf_navigation_utils</depend>
 
   <test_depend>roslaunch</test_depend>
 </package>

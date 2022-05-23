@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   visualization_msgs
   rt_gui
+  wolf_navigation_utils
 )
 
 ###################################
@@ -33,6 +34,8 @@ catkin_package(
     std_msgs
     tf
     visualization_msgs
+    rt_gui
+    wolf_navigation_utils
 )
 
 ###########

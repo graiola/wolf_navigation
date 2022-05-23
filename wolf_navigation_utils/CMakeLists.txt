@@ -15,7 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
     message_filters
     )
 
-catkin_package()
+catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES utils
+    )
 
 include_directories(
   include
@@ -27,7 +30,11 @@ include_directories(
 add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
-install(TARGETS odom_publisher_node
+# utils library
+add_library(utils src/map_saver.cpp)
+target_link_libraries(utils ${catkin_LIBRARIES})
+
+install(TARGETS odom_publisher_node utils
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

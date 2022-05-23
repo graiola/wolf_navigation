@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES utils
+    LIBRARIES wolf_navigation_utils
     )
 
 include_directories(
@@ -31,10 +31,10 @@ add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/od
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
 # utils library
-add_library(utils src/map_saver.cpp)
-target_link_libraries(utils ${catkin_LIBRARIES})
+add_library(wolf_navigation_utils src/map_saver.cpp)
+target_link_libraries(wolf_navigation_utils ${catkin_LIBRARIES})
 
-install(TARGETS odom_publisher_node utils
+install(TARGETS odom_publisher_node wolf_navigation_utils
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

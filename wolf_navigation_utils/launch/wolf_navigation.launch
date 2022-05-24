@@ -99,6 +99,10 @@
       <param name="polygon_marker_topic" value="costmap_polygon_markers"/>
       <param name="odom_topic" value="$(arg odom_frame)"/>
       <param name="occupied_min_value" value="100"/>
+      <param name="cluster_max_distance" value="0.5"/>
+      <param name="cluster_min_pts" value="1"/>
+      <param name="cluster_max_pts" value="200"/>
+      <param name="convex_hull_min_pt_separation" value="0.0"/>
       <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="artifacts_costmap" subst_value="true"/>
       <rosparam file="$(arg robot_params)/artifacts_costmap_params.yaml" command="load" subst_value="true"/>
     </node>

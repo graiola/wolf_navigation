@@ -1,5 +1,5 @@
-#ifndef COSTMAP_TOOLS_H
-#define COSTMAP_TOOLS_H
+#ifndef WOLF_EXPLORATION_COSTMAP_TOOLS_H
+#define WOLF_EXPLORATION_COSTMAP_TOOLS_H
 
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PointStamped.h>

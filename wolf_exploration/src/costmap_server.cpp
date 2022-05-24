@@ -4,19 +4,16 @@
 using namespace costmap_2d;
 using namespace tf2_ros;
 
-namespace explore
+namespace wolf_exploration
 {
 
 Costmap2DServer::Costmap2DServer(const std::string& costmap_name)
 {
-
   buffer_ = std::make_shared<Buffer>(ros::Duration(10));
   tf_ = std::make_shared<TransformListener>(*buffer_.get());
 
   costmap_ = std::make_shared<Costmap2DROS>(costmap_name,*buffer_.get());
-
   costmap_->pause();
-
 }
 
 void Costmap2DServer::start()

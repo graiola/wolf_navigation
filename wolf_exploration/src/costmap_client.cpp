@@ -40,7 +40,7 @@
 #include <mutex>
 #include <string>
 
-namespace explore
+namespace wolf_exploration
 {
 // static translation table to speed things up
 std::array<unsigned char, 256> init_translation_table();

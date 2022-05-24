@@ -52,33 +52,30 @@ include_directories(
   include
 )
 
-add_library(explore
+add_library(exploration_tools
   src/costmap_client.cpp
   src/costmap_server.cpp
-  src/explore.cpp
   src/frontier_search.cpp
-)
-add_dependencies(explore ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(explore ${catkin_LIBRARIES})
-
-add_executable(explore_node
-  src/explore_node.cpp
-)
-add_dependencies(explore_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(explore_node explore ${catkin_LIBRARIES})
-
-add_executable(artifacts_search
   src/artifacts_search.cpp
+  src/map_explorer.cpp
 )
-add_dependencies(artifacts_search ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(artifacts_search ${catkin_LIBRARIES})
+add_dependencies(exploration_tools ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(exploration_tools ${catkin_LIBRARIES})
+
+add_executable(map_explorer_node src/map_explorer_node.cpp)
+add_dependencies(map_explorer_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(map_explorer_node exploration_tools ${catkin_LIBRARIES})
+
+add_executable(artifacts_search_node src/artifacts_search_node.cpp)
+add_dependencies(artifacts_search_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(artifacts_search_node exploration_tools ${catkin_LIBRARIES})
 
 #############
 ## Install ##
 #############
 
 # install nodes
-install(TARGETS explore explore_node artifacts_search
+install(TARGETS exploration_tools map_explorer_node artifacts_search_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

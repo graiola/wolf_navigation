@@ -1,41 +1,4 @@
-/*********************************************************************
- *
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2008, Robert Bosch LLC.
- *  Copyright (c) 2015-2016, Jiri Horner.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Jiri Horner nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
- *********************************************************************/
-
-#include "wolf_exploration/explore.h"
+#include "wolf_exploration/map_explorer.h"
 
 inline static bool operator==(const geometry_msgs::Point& one,
                               const geometry_msgs::Point& two)
@@ -46,9 +9,10 @@ inline static bool operator==(const geometry_msgs::Point& one,
   return dist < 0.01;
 }
 
-namespace explore
+namespace wolf_exploration
 {
-Explore::Explore()
+
+MapExplorer::MapExplorer()
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
@@ -76,23 +40,23 @@ Explore::Explore()
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
 
-  ROS_INFO("Waiting to connect to move_base server");
+  ROS_INFO_NAMED(CLASS_NAME,"Waiting to connect to move_base server");
   move_base_client_.waitForServer();
-  ROS_INFO("Connected to move_base server");
+  ROS_INFO_NAMED(CLASS_NAME,"Connected to move_base server");
 
   //exploring_timer_ =
   //    relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
   //                             [this](const ros::TimerEvent&) { makePlan(); },false,false);
 
-  ROS_INFO("Exploration in stand-by");
+  ROS_INFO_NAMED(CLASS_NAME,"Map exploration in stand-by");
 }
 
-Explore::~Explore()
+MapExplorer::~MapExplorer()
 {
   stop();
 }
 
-void Explore::visualizeFrontiers(
+void MapExplorer::visualizeFrontiers(
     const std::vector<frontier_exploration::Frontier>& frontiers)
 {
   std_msgs::ColorRGBA blue;
@@ -111,7 +75,7 @@ void Explore::visualizeFrontiers(
   green.b = 0;
   green.a = 1.0;
 
-  ROS_DEBUG("visualising %lu frontiers", frontiers.size());
+  ROS_DEBUG_NAMED(CLASS_NAME,"Visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
   std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
   visualization_msgs::Marker m;
@@ -180,7 +144,7 @@ void Explore::visualizeFrontiers(
   marker_array_publisher_.publish(markers_msg);
 }
 
-void Explore::makePlan()
+void MapExplorer::makePlan()
 {
   while(ros::ok())
   {
@@ -190,13 +154,13 @@ void Explore::makePlan()
       auto pose = costmap_client_.getRobotPose();
       // get frontiers sorted according to cost
       auto frontiers = search_.searchFrom(pose.position);
-      ROS_DEBUG("found %lu frontiers", frontiers.size());
+      ROS_DEBUG_NAMED(CLASS_NAME,"Found %lu frontiers", frontiers.size());
       for (size_t i = 0; i < frontiers.size(); ++i) {
-        ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
+        ROS_DEBUG_NAMED(CLASS_NAME,"Frontier %zd cost: %f", i, frontiers[i].cost);
       }
 
       if (frontiers.empty()) {
-        ROS_INFO("No more frontiers left to explore");
+        ROS_INFO_NAMED(CLASS_NAME,"No more frontiers left to explore");
         stop();
         continue;
       }
@@ -229,7 +193,7 @@ void Explore::makePlan()
       // black list if we've made no progress for a long time
       if (ros::Time::now() - last_progress_ > progress_timeout_) {
         frontier_blacklist_.push_back(target_position);
-        ROS_INFO("Adding current goal to black list");
+        ROS_INFO_NAMED(CLASS_NAME,"Adding current goal to black list");
         makePlan();
         continue;
       }
@@ -251,14 +215,14 @@ void Explore::makePlan()
             const move_base_msgs::MoveBaseResultConstPtr& result) {
         reachedGoal(status, result, target_position);
       });
-      ROS_INFO_STREAM("Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+      ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
     } // running_
 
     ros::Duration(1. / planner_frequency_).sleep();
   } // while(ros::ok())
 }
 
-bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
+bool MapExplorer::goalOnBlacklist(const geometry_msgs::Point& goal)
 {
   constexpr static size_t tolerace = 5;
   costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
@@ -275,14 +239,14 @@ bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
   return false;
 }
 
-void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
+void MapExplorer::reachedGoal(const actionlib::SimpleClientGoalState& status,
                           const move_base_msgs::MoveBaseResultConstPtr&,
                           const geometry_msgs::Point& frontier_goal)
 {
-  ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
+  ROS_DEBUG_NAMED(CLASS_NAME,"Reached goal with status: %s", status.toString().c_str());
   if (status == actionlib::SimpleClientGoalState::ABORTED) {
     frontier_blacklist_.push_back(frontier_goal);
-    ROS_DEBUG("Adding current goal to black list");
+    ROS_DEBUG_NAMED(CLASS_NAME,"Adding current goal to black list");
   }
 
   // find new goal immediatelly regardless of planning frequency.
@@ -294,17 +258,17 @@ void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
   //    true);
 }
 
-void Explore::start()
+void MapExplorer::start()
 {
   running_ = true;
-  ROS_INFO("Exploration started");
+  ROS_INFO_NAMED(CLASS_NAME,"Map exploration started");
 }
 
-void Explore::stop()
+void MapExplorer::stop()
 {
   running_ = false;
   move_base_client_.cancelAllGoals();
-  ROS_INFO("Exploration stopped");
+  ROS_INFO_NAMED(CLASS_NAME,"Map exploration stopped");
 }
 
-}  // namespace explore
+}  // namespace

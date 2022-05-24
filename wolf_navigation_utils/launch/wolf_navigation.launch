@@ -75,7 +75,8 @@
     <node pkg="wolf_waypoints" type="waypoints_node" respawn="false" name="waypoints_node" output="screen"/>
 
     <!-- Run exploration node -->
-    <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">
+    <!-- Map exploration -->
+    <node pkg="wolf_exploration" type="map_explorer_node" respawn="false" name="map_explorer" output="screen">
       <param name="robot_base_frame" value="$(arg base_frame)"/>
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>
@@ -88,16 +89,18 @@
       <param name="transform_tolerance" value="0.3"/>
       <param name="min_frontier_size" value="0.75"/>
     </node>
-
-    <node pkg="wolf_exploration" type="artifacts_search" respawn="false" name="artifacts_search" output="screen">
+    <!-- Artifacts search -->
+    <node pkg="wolf_exploration" type="artifacts_search_node" respawn="false" name="artifacts_search" output="screen">
       <param name="converter_plugin" value="costmap_converter::CostmapToPolygonsDBSMCCH"/>
       <param name="robot_base_frame" value="$(arg base_frame)"/>
-      <param name="costmap_topic" value="/move_base/local_costmap/costmap"/>
-      <param name="costmap_updates_topic" value="/move_base/local_costmap/costmap_updates"/>
+      <param name="costmap_topic" value="/artifacts_search/artifacts_costmap/costmap"/>
+      <param name="costmap_updates_topic" value="/artifacts_search/artifacts_costmap/costmap_updates"/>
       <param name="obstacles_topic" value="costmap_obstacles"/>
       <param name="polygon_marker_topic" value="costmap_polygon_markers"/>
       <param name="odom_topic" value="$(arg odom_frame)"/>
       <param name="occupied_min_value" value="100"/>
+      <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="artifacts_costmap" subst_value="true"/>
+      <rosparam file="$(arg robot_params)/artifacts_costmap_params.yaml" command="load" subst_value="true"/>
     </node>
 
     <!-- Launch the controller -->

@@ -17,18 +17,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "wolf_exploration/explore.h"
-#include "wolf_exploration/costmap_server.h"
+#include "wolf_exploration/map_explorer.h"
 
 #include <thread>
 #include <rt_gui/rt_gui_client.h>
 #include <ros/ros.h>
 #include <wolf_navigation_utils/map_saver.h>
 
-#define NODE_NAME "explore_node"
+#define NODE_NAME "map_explorer_node"
 
 using namespace rt_gui;
 using namespace wolf_navigation_utils;
+using namespace wolf_exploration;
 
 void saveExploredMap(std::string mapname)
 {
@@ -49,21 +49,18 @@ int main(int argc, char** argv)
   //  ros::console::notifyLoggerLevelsChanged();
   //}
 
-  explore::Explore explore_map;
-  explore::Costmap2DServer costmap_server;
+  MapExplorer map_explorer;
 
   // create interface
-  ros::param::set("/explore/save_map_to","map");
-  if(RtGuiClient::getIstance().init("wolf_panel","explore"))
+  ros::param::set("/map_explorer/save_map_to","map");
+  if(RtGuiClient::getIstance().init("wolf_panel","map_explorer"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore_map));
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore_map));
-    RtGuiClient::getIstance().addText(std::string("explore"),std::string("save_map_to"),&saveExploredMap,false);
+    RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Start"),std::bind(&MapExplorer::start,&map_explorer));
+    RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Stop"),std::bind(&MapExplorer::stop,&map_explorer));
+    RtGuiClient::getIstance().addText(std::string("map_explorer"),std::string("save_map_to"),&saveExploredMap,false);
   }
 
-  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore_map));
-
-  costmap_server.start();
+  std::thread map_exploration_loop(std::bind(&MapExplorer::makePlan,&map_explorer));
 
   ros::Rate rate(50.0);
   while(ros::ok())
@@ -72,8 +69,7 @@ int main(int argc, char** argv)
     rate.sleep();
   }
 
-  exploration_loop.join();
-  costmap_server.stop();
+  map_exploration_loop.join();
 
   return 0;
 }

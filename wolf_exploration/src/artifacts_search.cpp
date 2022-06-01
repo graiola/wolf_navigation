@@ -20,7 +20,7 @@ ArtifactsSearch::ArtifactsSearch() : converter_loader_("costmap_converter", "cos
 
   ROS_INFO_STREAM("Standalone costmap converter:" << converter_plugin << " loaded.");
 
-  std::string costmap_topic = "/artifacts_search/artifacts_costmap";
+  std::string costmap_topic = "/artifacts_search/artifacts_costmap/costmap";
   n_.param("costmap_topic", costmap_topic, costmap_topic);
 
   std::string costmap_update_topic = "/artifacts_search/artifacts_costmap/costmap_updates";
@@ -32,10 +32,14 @@ ArtifactsSearch::ArtifactsSearch() : converter_loader_("costmap_converter", "cos
   std::string polygon_marker_topic = "costmap_polygon_markers";
   n_.param("polygon_marker_topic", polygon_marker_topic, polygon_marker_topic);
 
+  std::string centroid_marker_topic = "costmap_centroid_markers";
+  n_.param("centroid_marker_topic", centroid_marker_topic, centroid_marker_topic);
+
   costmap_sub_ = n_.subscribe(costmap_topic, 1, &ArtifactsSearch::costmapCallback, this);
   costmap_update_sub_ = n_.subscribe(costmap_update_topic, 1, &ArtifactsSearch::costmapUpdateCallback, this);
   obstacle_pub_ = n_.advertise<costmap_converter::ObstacleArrayMsg>(obstacles_topic, 1000);
-  marker_pub_ = n_.advertise<visualization_msgs::Marker>(polygon_marker_topic, 10);
+  polygon_pub_ = n_.advertise<visualization_msgs::Marker>(polygon_marker_topic, 10);
+  centroid_pub_ = n_.advertise<visualization_msgs::Marker>(centroid_marker_topic, 10);
 
   occupied_min_value_ = 100;
   n_.param("occupied_min_value", occupied_min_value_, occupied_min_value_);
@@ -87,7 +91,7 @@ void ArtifactsSearch::costmapCallback(const nav_msgs::OccupancyGridConstPtr& msg
 
   frame_id_ = msg->header.frame_id;
 
-  publishAsMarker(frame_id_, *obstacles, marker_pub_);
+  publishAsMarker(frame_id_, *obstacles, polygon_pub_);
 }
 
 void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateConstPtr& update)
@@ -107,13 +111,61 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
   converter_->compute();
   costmap_converter::ObstacleArrayConstPtr obstacles = converter_->getObstacles();
 
+  const std::vector<costmap_converter::ObstacleMsg>& obstacle_vector = obstacles->obstacles;
+
+  std::vector<geometry_msgs::Point> centroids;
+
+  double avg_x, avg_y, avg_z;
+  geometry_msgs::Point centroid;
+  for(unsigned int i=0; i< obstacle_vector.size(); i++)
+  {
+    avg_x = avg_y = avg_z = 0.0;
+    unsigned int n_points = obstacle_vector[i].polygon.points.size();
+
+    for(unsigned int j=0; j< n_points; j++)
+    {
+      avg_x = obstacle_vector[i].polygon.points[j].x + avg_x;
+      avg_y = obstacle_vector[i].polygon.points[j].y + avg_y;
+      avg_z = obstacle_vector[i].polygon.points[j].z + avg_z;
+    }
+    centroid.x = avg_x/n_points;
+    centroid.y = avg_y/n_points;
+    centroid.z = avg_z/n_points;
+    centroids.push_back(centroid);
+  }
+
   if (!obstacles)
     return;
 
   obstacle_pub_.publish(obstacles);
 
-  publishAsMarker(frame_id_, *obstacles, marker_pub_);
+  publishAsMarker(frame_id_, *obstacles, polygon_pub_);
+
+  publishAsMarker(frame_id_, centroids, centroid_pub_);
 }
+
+void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub)
+{
+  visualization_msgs::Marker sphere_list;
+  sphere_list.header.frame_id = frame_id;
+  sphere_list.header.stamp = ros::Time::now();
+  sphere_list.ns = "Centroids";
+  sphere_list.action = visualization_msgs::Marker::ADD;
+  sphere_list.pose.orientation.w = 1.0;
+
+  sphere_list.id = 0;
+  sphere_list.type = visualization_msgs::Marker::SPHERE_LIST;
+
+  sphere_list.scale.x = sphere_list.scale.y = sphere_list.scale.z = 0.3;
+  sphere_list.color.b = 1.0;
+  sphere_list.color.a = 1.0;
+
+  for (std::size_t i=0; i<points.size(); ++i)
+    sphere_list.points.push_back(points[i]);
+
+  marker_pub.publish(sphere_list);
+}
+
 
 void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub)
 {
@@ -159,9 +211,8 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::ve
         line_list.points.push_back(line_end);
       }
     }
-
-
   }
+
   marker_pub.publish(line_list);
 }
 
@@ -209,8 +260,7 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const costmap
         line_list.points.push_back(line_end);
       }
     }
-
-
   }
+
   marker_pub.publish(line_list);
 }

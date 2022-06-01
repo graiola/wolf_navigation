@@ -25,6 +25,8 @@ public:
 
   void publishAsMarker(const std::string& frame_id, const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub);
 
+  void publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub);
+
 private:
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> converter_loader_;
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> converter_;
@@ -33,7 +35,8 @@ private:
   ros::Subscriber costmap_sub_;
   ros::Subscriber costmap_update_sub_;
   ros::Publisher obstacle_pub_;
-  ros::Publisher marker_pub_;
+  ros::Publisher polygon_pub_;
+  ros::Publisher centroid_pub_;
 
   std::string frame_id_;
   int occupied_min_value_;

@@ -91,7 +91,7 @@ void ArtifactsSearch::costmapCallback(const nav_msgs::OccupancyGridConstPtr& msg
 
   frame_id_ = msg->header.frame_id;
 
-  publishAsMarker(frame_id_, *obstacles, polygon_pub_);
+  publishAsMarker(frame_id_, *obstacles, polygon_pub_, Color(0.0,1.0,0.0));
 }
 
 void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateConstPtr& update)
@@ -139,12 +139,43 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
 
   obstacle_pub_.publish(obstacles);
 
-  publishAsMarker(frame_id_, *obstacles, polygon_pub_);
+  // Merge the centroids
+  if(centroids.size() > 2)
+  {
+    std::vector<geometry_msgs::Point>::iterator it_main, it_comp;
+    geometry_msgs::Point tmp_point;
+    it_main = centroids.begin();
+    it_comp = centroids.begin()+1;
+    while (it_main != centroids.end())
+    {
+      it_comp = it_main+1;
+      while (it_comp != centroids.end())
+      {
+        double x = (it_main->x - it_comp->x);
+        double y = (it_main->y - it_comp->y);
+        if(std::sqrt( x*x + y*y ) <= 1.5)
+        {
+          tmp_point.x = (it_main->x + it_comp->x)/2.0;
+          tmp_point.y = (it_main->y + it_comp->y)/2.0;
+          *it_main = tmp_point;
+          it_comp = centroids.erase(it_comp);
+        }
+        else {
+          ++it_comp;
+        }
+      }
+      ++it_main;
+    }
+  }
 
-  publishAsMarker(frame_id_, centroids, centroid_pub_);
+
+  // Publish
+  publishAsMarker(frame_id_, *obstacles, polygon_pub_, Color(0.0,1.0,0.0));
+  publishAsMarker(frame_id_, centroids, centroid_pub_, Color(0.0,0.0,1.0));
+  //publishAsMarker(frame_id_, centroids_original, centroid_original_pub_, Color(0.0,0.0,1.0));
 }
 
-void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub)
+void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub, Color color)
 {
   visualization_msgs::Marker sphere_list;
   sphere_list.header.frame_id = frame_id;
@@ -157,7 +188,9 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::ve
   sphere_list.type = visualization_msgs::Marker::SPHERE_LIST;
 
   sphere_list.scale.x = sphere_list.scale.y = sphere_list.scale.z = 0.3;
-  sphere_list.color.b = 1.0;
+  sphere_list.color.r = color.r_;
+  sphere_list.color.g = color.g_;
+  sphere_list.color.b = color.b_;
   sphere_list.color.a = 1.0;
 
   for (std::size_t i=0; i<points.size(); ++i)
@@ -167,7 +200,7 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::ve
 }
 
 
-void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub)
+void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub, Color color)
 {
   visualization_msgs::Marker line_list;
   line_list.header.frame_id = frame_id;
@@ -180,7 +213,9 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::ve
   line_list.type = visualization_msgs::Marker::LINE_LIST;
 
   line_list.scale.x = 0.1;
-  line_list.color.g = 1.0;
+  line_list.color.r = color.r_;
+  line_list.color.g = color.g_;
+  line_list.color.b = color.b_;
   line_list.color.a = 1.0;
 
   for (std::size_t i=0; i<polygonStamped.size(); ++i)
@@ -216,7 +251,7 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const std::ve
   marker_pub.publish(line_list);
 }
 
-void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub)
+void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub, Color color)
 {
   visualization_msgs::Marker line_list;
   line_list.header.frame_id = frame_id;
@@ -229,7 +264,9 @@ void ArtifactsSearch::publishAsMarker(const std::string& frame_id, const costmap
   line_list.type = visualization_msgs::Marker::LINE_LIST;
 
   line_list.scale.x = 0.1;
-  line_list.color.g = 1.0;
+  line_list.color.r = color.r_;
+  line_list.color.g = color.g_;
+  line_list.color.b = color.b_;
   line_list.color.a = 1.0;
 
   for (const costmap_converter::ObstacleMsg& obstacle : obstacles.obstacles)

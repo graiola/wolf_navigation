@@ -13,6 +13,20 @@ namespace wolf_exploration {
 
 class ArtifactsSearch
 {
+
+  struct Color
+  {
+    Color(double r, double g, double b)
+    {
+      r_ = r;
+      g_ = g;
+      b_ = b;
+    }
+    double r_;
+    double g_;
+    double b_;
+  };
+
 public:
 
   ArtifactsSearch();
@@ -21,11 +35,11 @@ public:
 
   void costmapUpdateCallback(const map_msgs::OccupancyGridUpdateConstPtr& update);
 
-  void publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub);
+  void publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub, Color color);
 
-  void publishAsMarker(const std::string& frame_id, const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub);
+  void publishAsMarker(const std::string& frame_id, const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub, Color color);
 
-  void publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub);
+  void publishAsMarker(const std::string& frame_id, const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub, Color color);
 
 private:
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> converter_loader_;

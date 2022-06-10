@@ -19,6 +19,7 @@ MapExplorer::MapExplorer()
   , move_base_client_("move_base")
   , prev_distance_(0)
   , last_markers_count_(0)
+  , running_(false)
 {
   double timeout;
   double min_frontier_size;

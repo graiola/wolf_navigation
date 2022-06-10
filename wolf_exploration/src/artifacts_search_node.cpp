@@ -42,9 +42,25 @@ int main(int argc, char** argv)
 
   ArtifactsSearch artifacts_search;
 
-  ros::spin();
+  // create interface
+  if(RtGuiClient::getIstance().init("wolf_panel","artifacts_search"))
+  {
+    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Start"),std::bind(&ArtifactsSearch::start,&artifacts_search));
+    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Stop"),std::bind(&ArtifactsSearch::stop,&artifacts_search));
+  }
+
+  std::thread artifacts_search_loop(std::bind(&ArtifactsSearch::makePlan,&artifacts_search));
+
+  ros::Rate rate(50.0);
+  while(ros::ok())
+  {
+    RtGuiClient::getIstance().sync();
+    rate.sleep();
+  }
 
   costmap_server.stop();
+
+  artifacts_search_loop.join();
 
   return 0;
 }

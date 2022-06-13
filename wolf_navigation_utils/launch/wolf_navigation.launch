@@ -25,7 +25,6 @@
     <arg name="command_vel" default="/$(arg robot_name)/wolf_controller/twist" />
 
     <include file="$(find wolf_navigation_utils)/launch/wolf_navigation_bringup.launch">
-        <arg name="robot_name" value="$(arg robot_name)"/>
         <arg name="world_name" value="$(arg world_name)" />
         <arg name="task_period" value="$(arg task_period)" />
         <arg name="gazebo_debug" value="$(arg gazebo_debug)" />
@@ -34,7 +33,6 @@
         <arg name="input_device" value="$(arg input_device)" />
         <arg name="gazebo" value="$(arg gazebo)" />
         <arg name="engine" value="$(arg engine)" />
-        <arg name="launch_controller" value="$(arg launch_controller)" />
         <arg name="local_planner" value="$(arg local_planner)" />
         <arg name="global_planner" value="$(arg global_planner)"/>
         <arg name="global_frame" value="$(arg global_frame)"/>

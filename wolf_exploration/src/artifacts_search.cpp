@@ -104,7 +104,15 @@ void ArtifactsSearch::stop()
 {
   running_ = false;
   move_base_client_.cancelAllGoals();
+  centroid_blacklist_.clear();
   ROS_INFO_NAMED(CLASS_NAME,"Artifacts search stopped");
+}
+
+void ArtifactsSearch::pause()
+{
+  running_ = false;
+  move_base_client_.cancelAllGoals();
+  ROS_INFO_NAMED(CLASS_NAME,"Artifacts search paused");
 }
 
 void ArtifactsSearch::makePlan()
@@ -140,18 +148,6 @@ void ArtifactsSearch::makePlan()
         continue;
       }
       geometry_msgs::Point target_position = centroids_[min_idx];
-
-      // find non blacklisted centroids
-      //auto centroid =
-      //    std::find_if_not(centroids_.begin(), centroids_.end(),
-      //                     [this](const geometry_msgs::Point& c) {
-      //  return goalOnBlacklist(c);
-      //});
-      //if (centroid == centroids_.end()) {
-      //  stop();
-      //  continue;
-      //}
-      //geometry_msgs::Point target_position = *centroid;
 
       // time out if we are not making any progress
       bool same_goal = prev_goal_ == target_position;
@@ -206,12 +202,6 @@ void ArtifactsSearch::makePlan()
       if (status == actionlib::SimpleClientGoalState::ABORTED || status == actionlib::SimpleClientGoalState::SUCCEEDED)
         centroid_blacklist_.push_back(goal.target_pose.pose.position);
 
-      //move_base_client_.sendGoal(
-      //      goal, [this, target_position](
-      //      const actionlib::SimpleClientGoalState& status,
-      //      const move_base_msgs::MoveBaseResultConstPtr& result) {
-      //  reachedGoal(status, result, target_position);
-      //});
       ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send new exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
 
       mtx_.unlock();
@@ -355,20 +345,6 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
 
 bool ArtifactsSearch::goalOnBlacklist(const geometry_msgs::Point &goal)
 {
-  //constexpr static size_t tolerace = 5;
-  //costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
-  //
-  //// check if a goal is on the blacklist for goals that we're pursuing
-  //for (auto& centroids : centroid_blacklist_) {
-  //  double x_diff = fabs(goal.x - centroids.x);
-  //  double y_diff = fabs(goal.y - centroids.y);
-  //
-  //  if (x_diff < tolerace * costmap2d->getResolution() &&
-  //      y_diff < tolerace * costmap2d->getResolution())
-  //    return true;
-  //}
-  //return false;
-
   // check if a goal is on the blacklist for goals that we're pursuing
   for (auto& centroids : centroid_blacklist_)
   {

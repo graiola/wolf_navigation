@@ -22,6 +22,8 @@ public:
 
   const std::string CLASS_NAME = "ArtifactsSearch";
 
+  typedef std::shared_ptr<ArtifactsSearch> Ptr;
+
   ArtifactsSearch();
   ~ArtifactsSearch();
 
@@ -34,6 +36,11 @@ public:
    * @brief  Stop search
    */
   void stop();
+
+  /**
+   * @brief  Pause search
+   */
+  void pause();
 
   /**
    * @brief Create a plan

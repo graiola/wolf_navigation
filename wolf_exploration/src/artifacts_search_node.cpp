@@ -23,11 +23,50 @@
 #include <thread>
 #include <rt_gui/rt_gui_client.h>
 #include <ros/ros.h>
+#include <artifacts_mapping/addClass.h>
+#include <std_srvs/Empty.h>
 
 #define NODE_NAME "artifacts_search_node"
 
 using namespace rt_gui;
 using namespace wolf_exploration;
+
+static ArtifactsSearch::Ptr _artifacts_search;
+
+static std::string _add_class_srv = "/artifacts_manager/add_class";
+static std::string _clear_classes_srv = "/artifacts_manager/clear_classes";
+static int _timeout = 10;
+
+void searchArtifact(std::string artifact_name)
+{
+  artifacts_mapping::addClass srv;
+  srv.request.value = artifact_name;
+  if(ros::service::waitForService(_add_class_srv,_timeout))
+  {
+    ros::service::call(_add_class_srv,srv);
+    _artifacts_search->start();
+  }
+  else
+    ROS_WARN_NAMED(NODE_NAME,"ROS service %s has not been advertised yet!",_add_class_srv.c_str());
+}
+
+void stop()
+{
+  _artifacts_search->pause();
+}
+
+void reset()
+{
+  std_srvs::Empty srv;
+  if(ros::service::waitForService(_clear_classes_srv,_timeout))
+  {
+    ros::service::call(_clear_classes_srv,srv);
+    _artifacts_search->stop();
+  }
+  else
+    ROS_WARN_NAMED(NODE_NAME,"ROS service %s has not been advertised yet!",_clear_classes_srv.c_str());
+}
+
 
 int main(int argc, char** argv)
 {
@@ -40,16 +79,19 @@ int main(int argc, char** argv)
   Costmap2DServer costmap_server("artifacts_costmap");
   costmap_server.start();
 
-  ArtifactsSearch artifacts_search;
+  _artifacts_search.reset(new ArtifactsSearch());
 
   // create interface
+  ros::param::set("/artifacts_search/artifact_name","artifact");
   if(RtGuiClient::getIstance().init("wolf_panel","artifacts_search"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Start"),std::bind(&ArtifactsSearch::start,&artifacts_search));
-    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Stop"),std::bind(&ArtifactsSearch::stop,&artifacts_search));
+    RtGuiClient::getIstance().addText(std::string("artifacts_search"),std::string("artifact_name"),&searchArtifact,false);
+    //RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Start"),std::bind(&ArtifactsSearch::start,&artifacts_search));
+    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Stop"),stop);
+    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Reset"),reset);
   }
 
-  std::thread artifacts_search_loop(std::bind(&ArtifactsSearch::makePlan,&artifacts_search));
+  std::thread artifacts_search_loop(std::bind(&ArtifactsSearch::makePlan,_artifacts_search));
 
   ros::Rate rate(50.0);
   while(ros::ok())

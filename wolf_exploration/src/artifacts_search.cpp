@@ -59,11 +59,14 @@ ArtifactsSearch::ArtifactsSearch()
   std::string centroid_marker_topic = "costmap_centroid_markers";
   private_nh_.param("centroid_marker_topic", centroid_marker_topic, centroid_marker_topic);
 
+  std::string centroid_radius = "centroid_radius";
+  private_nh_.param("centroid_radius", centroid_radius_,1.5); // [m]
+
   costmap_sub_ = private_nh_.subscribe(costmap_topic, 1, &ArtifactsSearch::costmapCallback, this);
   costmap_update_sub_ = private_nh_.subscribe(costmap_update_topic, 1, &ArtifactsSearch::costmapUpdateCallback, this);
   obstacle_pub_ = private_nh_.advertise<costmap_converter::ObstacleArrayMsg>(obstacles_topic, 1000);
-  polygon_pub_ = private_nh_.advertise<visualization_msgs::Marker>(polygon_marker_topic, 10);
-  centroid_pub_ = private_nh_.advertise<visualization_msgs::Marker>(centroid_marker_topic, 10);
+  polygon_pub_ = private_nh_.advertise<visualization_msgs::Marker>(polygon_marker_topic, 1000);
+  centroid_pub_ = private_nh_.advertise<visualization_msgs::Marker>(centroid_marker_topic, 1000);
 
   occupied_min_value_ = 100;
   private_nh_.param("occupied_min_value", occupied_min_value_, occupied_min_value_);
@@ -118,31 +121,37 @@ void ArtifactsSearch::makePlan()
       }
 
       auto pose = costmap_client_.getRobotPose();
-      // get closest centroid
+      // get closest centroid not on the black list
       double min_dist = 10000.0; // Dummy value
       double current_dist = 0.0;
-      unsigned int min_idx = 0;
+      int min_idx = -1;
       for(unsigned int i=0; i < centroids_.size(); i++)
       {
         current_dist = dist(centroids_[i],pose.position);
-        if(current_dist <= min_dist)
+        if(!goalOnBlacklist(centroids_[i]) && current_dist <= min_dist)
         {
           min_dist = current_dist;
           min_idx = i;
         }
       }
-
-      // find non blacklisted centroids
-      auto centroid =
-          std::find_if_not(centroids_.begin(), centroids_.end(),
-                           [this](const geometry_msgs::Point& c) {
-        return goalOnBlacklist(c);
-      });
-      if (centroid == centroids_.end()) {
+      if(min_idx == -1)
+      {
         stop();
         continue;
       }
-      geometry_msgs::Point target_position = *centroid;
+      geometry_msgs::Point target_position = centroids_[min_idx];
+
+      // find non blacklisted centroids
+      //auto centroid =
+      //    std::find_if_not(centroids_.begin(), centroids_.end(),
+      //                     [this](const geometry_msgs::Point& c) {
+      //  return goalOnBlacklist(c);
+      //});
+      //if (centroid == centroids_.end()) {
+      //  stop();
+      //  continue;
+      //}
+      //geometry_msgs::Point target_position = *centroid;
 
       // time out if we are not making any progress
       bool same_goal = prev_goal_ == target_position;
@@ -156,7 +165,6 @@ void ArtifactsSearch::makePlan()
       if (ros::Time::now() - last_progress_ > progress_timeout_) {
         centroid_blacklist_.push_back(target_position);
         ROS_INFO_NAMED(CLASS_NAME,"Adding current goal to black list");
-        makePlan();
         continue;
       }
 
@@ -167,36 +175,51 @@ void ArtifactsSearch::makePlan()
 
       // send goal to move_base if we have something new to pursue
       move_base_msgs::MoveBaseGoal goal;
-      goal.target_pose.pose.position = target_position;
-      goal.target_pose.pose.orientation.w = 1.;
+
+      // align the robot with the goal
+      double yaw = 0.0;
+      double xd, yd;
+      yd = target_position.y-pose.position.y;
+      xd = target_position.x-pose.position.x;
+      yaw = std::atan2(yd,xd);
+      tf2::Quaternion q;
+      q.setRPY( 0., 0., yaw );
+      goal.target_pose.pose.orientation.x = q.x();
+      goal.target_pose.pose.orientation.y = q.y();
+      goal.target_pose.pose.orientation.z = q.z();
+      goal.target_pose.pose.orientation.w = q.w();
+
+      double d = std::sqrt(xd*xd + yd*yd) - centroid_radius_; // FIXME
+      goal.target_pose.pose.position.x = d * std::cos(yaw) + pose.position.x;
+      goal.target_pose.pose.position.y = d * std::sin(yaw) + pose.position.y;
+
       goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
       goal.target_pose.header.stamp = ros::Time::now();
-      move_base_client_.sendGoal(
-            goal, [this, target_position](
-            const actionlib::SimpleClientGoalState& status,
-            const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status, result, target_position);
-      });
-      ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
 
-    mtx_.unlock();
+      move_base_client_.sendGoal(goal);
+
+      move_base_client_.waitForResult(progress_timeout_);
+
+      auto status = move_base_client_.getState();
+
+      ROS_INFO_NAMED(CLASS_NAME,"Reached exploration goal with status: %s", status.toString().c_str());
+      if (status == actionlib::SimpleClientGoalState::ABORTED || status == actionlib::SimpleClientGoalState::SUCCEEDED)
+        centroid_blacklist_.push_back(goal.target_pose.pose.position);
+
+      //move_base_client_.sendGoal(
+      //      goal, [this, target_position](
+      //      const actionlib::SimpleClientGoalState& status,
+      //      const move_base_msgs::MoveBaseResultConstPtr& result) {
+      //  reachedGoal(status, result, target_position);
+      //});
+      ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send new exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+
+      mtx_.unlock();
     } // running_
 
     ros::Duration(1. / planner_frequency_).sleep();
   } // while(ros::ok())
 }
-
-void ArtifactsSearch::reachedGoal(const actionlib::SimpleClientGoalState& status,
-                          const move_base_msgs::MoveBaseResultConstPtr&,
-                          const geometry_msgs::Point& centroid_goal)
-{
-  ROS_DEBUG_NAMED(CLASS_NAME,"Reached goal with status: %s", status.toString().c_str());
-  if (status == actionlib::SimpleClientGoalState::ABORTED) {
-    centroid_blacklist_.push_back(centroid_goal);
-    ROS_DEBUG_NAMED(CLASS_NAME,"Adding current goal to black list");
-  }
-}
-
 
 void ArtifactsSearch::costmapCallback(const nav_msgs::OccupancyGridConstPtr& msg)
 {
@@ -301,7 +324,7 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
         //double x = (it_main->x - it_comp->x);
         //double y = (it_main->y - it_comp->y);
         //if(std::sqrt( x*x + y*y ) <= 1.5)
-        if(dist(*it_main,*it_comp) <= 1.5) // FIXME
+        if(dist(*it_main,*it_comp) <= centroid_radius_)
         {
           tmp_point.x = (it_main->x + it_comp->x)/2.0;
           tmp_point.y = (it_main->y + it_comp->y)/2.0;
@@ -332,16 +355,24 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
 
 bool ArtifactsSearch::goalOnBlacklist(const geometry_msgs::Point &goal)
 {
-  constexpr static size_t tolerace = 5;
-  costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
+  //constexpr static size_t tolerace = 5;
+  //costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
+  //
+  //// check if a goal is on the blacklist for goals that we're pursuing
+  //for (auto& centroids : centroid_blacklist_) {
+  //  double x_diff = fabs(goal.x - centroids.x);
+  //  double y_diff = fabs(goal.y - centroids.y);
+  //
+  //  if (x_diff < tolerace * costmap2d->getResolution() &&
+  //      y_diff < tolerace * costmap2d->getResolution())
+  //    return true;
+  //}
+  //return false;
 
   // check if a goal is on the blacklist for goals that we're pursuing
-  for (auto& centroids : centroid_blacklist_) {
-    double x_diff = fabs(goal.x - centroids.x);
-    double y_diff = fabs(goal.y - centroids.y);
-
-    if (x_diff < tolerace * costmap2d->getResolution() &&
-        y_diff < tolerace * costmap2d->getResolution())
+  for (auto& centroids : centroid_blacklist_)
+  {
+    if (dist(goal,centroids) <= centroid_radius_)
       return true;
   }
   return false;
@@ -365,47 +396,28 @@ void ArtifactsSearch::publishAsMarker(const std::vector<geometry_msgs::Point>& p
   green.b = 0;
   green.a = 1.0;
 
-  visualization_msgs::MarkerArray markers_msg;
-  std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
-  visualization_msgs::Marker m;
+  visualization_msgs::Marker sphere_list;
+  sphere_list.header.frame_id = costmap_client_.getGlobalFrameID();
+  sphere_list.header.stamp = ros::Time::now();
+  sphere_list.ns = "centroids";
+  sphere_list.action = visualization_msgs::Marker::ADD;
+  sphere_list.pose.orientation.w = 1.0;
 
-  m.header.frame_id = costmap_client_.getGlobalFrameID();
-  m.header.stamp = ros::Time::now();
-  m.ns = "centroids";
-  m.type = visualization_msgs::Marker::SPHERE;
-  m.pose.orientation.w = 1.0;
+  sphere_list.id = 0;
+  sphere_list.type = visualization_msgs::Marker::SPHERE_LIST;
 
-  m.action = visualization_msgs::Marker::ADD;
-  size_t id = 0;
-  for (auto& p : points)
+  sphere_list.scale.x = sphere_list.scale.y = sphere_list.scale.z = 0.3;
+
+  for (std::size_t i=0; i<points.size(); ++i)
   {
-    m.id = int(id);
-    m.pose.position = p;
-    m.scale.x = 0.1;
-    m.scale.y = 0.1;
-    m.scale.z = 0.1;
-    if (goalOnBlacklist(p))
-      m.color = red;
+    if(goalOnBlacklist(points[i]))
+      sphere_list.colors.push_back(red);
     else
-      m.color = blue;
-    m.pose.orientation.x = 0.0;
-    m.pose.orientation.y = 0.0;
-    m.pose.orientation.z = 0.0;
-    m.pose.orientation.w = 1.0;
-    markers.push_back(m);
-    ++id;
-  }
-  size_t current_markers_count = markers.size();
-
-  // delete previous markers, which are now unused
-  m.action = visualization_msgs::Marker::DELETE;
-  for (; id < last_markers_count_; ++id) {
-    m.id = int(id);
-    markers.push_back(m);
+      sphere_list.colors.push_back(green);
+    sphere_list.points.push_back(points[i]);
   }
 
-  last_markers_count_ = current_markers_count;
-  marker_pub.publish(markers_msg);
+  marker_pub.publish(sphere_list);
 }
 
 

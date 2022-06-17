@@ -46,10 +46,6 @@ public:
 
 private:
 
-  void reachedGoal(const actionlib::SimpleClientGoalState& status,
-                   const move_base_msgs::MoveBaseResultConstPtr& result,
-                   const geometry_msgs::Point& centroid_goal);
-
   bool goalOnBlacklist(const geometry_msgs::Point& goal);
 
   void publishAsMarker(const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub);
@@ -84,6 +80,8 @@ private:
   actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
 
   Costmap2DClient costmap_client_;
+
+  double centroid_radius_;
 
   std::atomic<bool> running_;
 

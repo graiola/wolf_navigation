@@ -71,5 +71,7 @@ sudo apt-get install ros-${ROS_DISTRO}-pointcloud-to-laserscan \
                      ros-${ROS_DISTRO}-map-server              \
                      ros-${ROS_DISTRO}-amcl                    \
                      ros-${ROS_DISTRO}-gmapping                \
+                     ros-${ROS_DISTRO}-costmap-converter       \
+                     ros-${ROS_DISTRO}-costmap-2d              \
                      -y
 ```

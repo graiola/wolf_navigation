@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <arg name="world_name" default="empty" />
+    <arg name="task_period" default="0.001" />
+    <arg name="gazebo_debug" default="false" />
+    <arg name="gazebo_gui" default="false" />
+    <arg name="rqt_gui" default="false" />
+    <arg name="input_device" default="keyboard" />
+    <arg name="gazebo" default="true" />
+    <arg name="engine" default="ode" />
+    <arg name="local_planner" default="dwa_local_planner/DWAPlannerROS" />
+    <arg name="global_planner" default="navfn/NavfnROS"/>
+    <arg name="global_frame" default="map"/>
+    <arg name="odom_frame" default="odom"/>
+    <arg name="base_frame" default="base_footprint"/>
+    <arg name="scan_topic" default="scan"/>
+    <arg name="velodyne_pointcloud_topic" default="velodyne_pointcloud"/>
+    <arg name="depth_camera_name" default="d435"/>
+    <arg name="robot_params" default="" />
+    <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
+    <arg name="mapping" default="true" />
+    <arg name="command_vel" default="" />
+    <arg name="odom_twist_in_local_frame" default="false" />
+
+    <!-- Convert from PointCould2 to Laserscan -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+        <remap from="cloud_in" to="/$(arg velodyne_pointcloud_topic)"/>
+        <param name="use_inf" value="false"/>
+        <param name="range_max" value="200"/>
+    </node>
+
+    <!-- Run hector slam (this can be useful if we don't have any odometry but it has problems if the robot rotates too fast) -->
+    <!--  <include file="$(find hector_mapping)/launch/mapping_default.launch" if="$(arg mapping)">
+        <arg name="base_frame" default="$(arg base_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+        <arg name="pub_map_odom_transform" default="true"/>
+        <arg name="scan_topic" default="$(arg scan_topic)"/>
+    </include> -->
+    <!-- Run gmapping slam -->
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" if="$(arg mapping)">
+      <remap from="scan" to="$(arg scan_topic)" />
+      <param name="base_frame" value="$(arg base_frame)" />
+      <param name="odom_frame" value="$(arg odom_frame)" />
+    </node>
+
+    <!-- Start odom node -->
+    <node name="odom_publisher_node" pkg="wolf_navigation_utils" type="odom_publisher_node" output="screen"  respawn="false">
+        <rosparam file="$(arg robot_params)/odom_params.yaml" command="load" subst_value="true"/>
+    </node>
+
+    <!-- Run AMCL localization -->
+    <include file="$(find wolf_navigation_utils)/launch/wolf_localization.launch" unless="$(arg mapping)">
+        <arg name="base_frame" default="$(arg base_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+        <arg name="scan_topic" default="$(arg scan_topic)"/>
+        <arg name="map_file" default="$(arg map_file)" />
+        <arg name="robot_params" default="$(arg robot_params)" />
+    </include>
+
+    <!-- Run move base -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="global_costmap" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="local_costmap" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/move_base_params.yaml" command="load" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/local_costmap_params.yaml" command="load" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/global_costmap_params.yaml" command="load" subst_value="true"/>
+        <rosparam file="$(arg robot_params)/planners_params.yaml" command="load" subst_value="true"/>
+        <param name="base_local_planner" value="$(arg local_planner)"/>
+        <param name="base_global_planner" value="$(arg global_planner)"/>
+        <remap from="cmd_vel" to="$(arg command_vel)"/>
+    </node>
+
+    <!-- Run waypoints node -->
+    <node pkg="wolf_waypoints" type="waypoints_node" respawn="false" name="waypoints_node" output="screen"/>
+
+    <!-- Run exploration node -->
+    <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">
+      <param name="robot_base_frame" value="$(arg base_frame)"/>
+      <param name="costmap_topic" value="map"/>
+      <param name="costmap_updates_topic" value="map_updates"/>
+      <param name="visualize" value="true"/>
+      <param name="planner_frequency" value="0.33"/>
+      <param name="progress_timeout" value="30.0"/>
+      <param name="potential_scale" value="3.0"/>
+      <param name="orientation_scale" value="0.0"/>
+      <param name="gain_scale" value="1.0"/>
+      <param name="transform_tolerance" value="0.3"/>
+      <param name="min_frontier_size" value="0.75"/>
+    </node>
+
+</launch>

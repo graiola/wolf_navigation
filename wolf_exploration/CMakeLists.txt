@@ -70,6 +70,10 @@ add_executable(artifacts_search_node src/artifacts_search_node.cpp)
 add_dependencies(artifacts_search_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(artifacts_search_node exploration_tools ${catkin_LIBRARIES})
 
+add_executable(test_cluster src/test.cpp)
+add_dependencies(test_cluster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_cluster exploration_tools ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

@@ -20,13 +20,14 @@
 #include "wolf_exploration/map_explorer.h"
 
 #include <thread>
+#ifdef RT_GUI
 #include <rt_gui/rt_gui_client.h>
+#endif
 #include <ros/ros.h>
 #include <wolf_navigation_utils/map_saver.h>
 
 #define NODE_NAME "map_explorer_node"
 
-using namespace rt_gui;
 using namespace wolf_navigation_utils;
 using namespace wolf_exploration;
 
@@ -52,20 +53,24 @@ int main(int argc, char** argv)
   MapExplorer map_explorer;
 
   // create interface
+  #ifdef RT_GUI
   ros::param::set("/map_explorer/save_map_to","map");
-  if(RtGuiClient::getIstance().init("wolf_panel","map_explorer"))
+  if(rt_gui::RtGuiClient::getIstance().init("wolf_panel","map_explorer"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Start"),std::bind(&MapExplorer::start,&map_explorer));
-    RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Stop"),std::bind(&MapExplorer::stop,&map_explorer));
-    RtGuiClient::getIstance().addText(std::string("map_explorer"),std::string("save_map_to"),&saveExploredMap,false);
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Start"),std::bind(&MapExplorer::start,&map_explorer));
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Stop"),std::bind(&MapExplorer::stop,&map_explorer));
+    rt_gui::RtGuiClient::getIstance().addText(std::string("map_explorer"),std::string("save_map_to"),&saveExploredMap,false);
   }
+  #endif
 
   std::thread map_exploration_loop(std::bind(&MapExplorer::makePlan,&map_explorer));
 
   ros::Rate rate(50.0);
   while(ros::ok())
   {
-    RtGuiClient::getIstance().sync();
+    #ifdef RT_GUI
+    rt_gui::RtGuiClient::getIstance().sync();
+    #endif
     rate.sleep();
   }
 

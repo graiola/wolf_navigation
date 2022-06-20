@@ -20,6 +20,7 @@
     <arg name="robot_params" default="" />
     <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
     <arg name="mapping" default="true" />
+    <arg name="artifacts_mapping" default="false" />
     <arg name="command_vel" default="" />
     <arg name="odom_twist_in_local_frame" default="false" />
 
@@ -28,6 +29,7 @@
         <remap from="cloud_in" to="/$(arg velodyne_pointcloud_topic)"/>
         <param name="use_inf" value="false"/>
         <param name="range_max" value="200"/>
+        <remap from="scan" to="$(arg scan_topic)" />
     </node>
 
     <!-- Run hector slam (this can be useful if we don't have any odometry but it has problems if the robot rotates too fast) -->
@@ -39,9 +41,10 @@
     </include> -->
     <!-- Run gmapping slam -->
     <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" if="$(arg mapping)">
-      <remap from="scan" to="$(arg scan_topic)" />
-      <param name="base_frame" value="$(arg base_frame)" />
-      <param name="odom_frame" value="$(arg odom_frame)" />
+       <remap from="scan" to="$(arg scan_topic)" />
+       <param name="map_frame"  value="$(arg global_frame)" />
+       <param name="base_frame" value="$(arg base_frame)"   />
+       <param name="odom_frame" value="$(arg odom_frame)"   />
     </node>
 
     <!-- Start odom node -->
@@ -75,7 +78,8 @@
     <node pkg="wolf_waypoints" type="waypoints_node" respawn="false" name="waypoints_node" output="screen"/>
 
     <!-- Run exploration node -->
-    <node pkg="wolf_exploration" type="explore_node" respawn="false" name="explore_node" output="screen">
+    <!-- Map exploration -->
+    <node pkg="wolf_exploration" type="map_explorer_node" respawn="false" name="map_explorer" output="screen">
       <param name="robot_base_frame" value="$(arg base_frame)"/>
       <param name="costmap_topic" value="map"/>
       <param name="costmap_updates_topic" value="map_updates"/>
@@ -87,6 +91,23 @@
       <param name="gain_scale" value="1.0"/>
       <param name="transform_tolerance" value="0.3"/>
       <param name="min_frontier_size" value="0.75"/>
+    </node>
+    <!-- Artifacts search -->
+    <node pkg="wolf_exploration" type="artifacts_search_node" respawn="false" name="artifacts_search" output="screen" if="$(arg artifacts_mapping)">
+      <param name="converter_plugin" value="costmap_converter::CostmapToPolygonsDBSMCCH"/>
+      <param name="robot_base_frame" value="$(arg base_frame)"/>
+      <param name="costmap_topic" value="/artifacts_search/artifacts_costmap/costmap"/>
+      <param name="costmap_updates_topic" value="/artifacts_search/artifacts_costmap/costmap_updates"/>
+      <param name="obstacles_topic" value="costmap_obstacles"/>
+      <param name="polygon_marker_topic" value="costmap_polygon_markers"/>
+      <param name="odom_topic" value="$(arg odom_frame)"/>
+      <param name="occupied_min_value" value="100"/>
+      <param name="cluster_max_distance" value="0.1"/>
+      <param name="cluster_min_pts" value="1"/>
+      <param name="cluster_max_pts" value="200"/>
+      <param name="convex_hull_min_pt_separation" value="0.0"/>
+      <rosparam file="$(arg robot_params)/common_costmap_params.yaml" command="load" ns="artifacts_costmap" subst_value="true"/>
+      <rosparam file="$(arg robot_params)/artifacts_costmap_params.yaml" command="load" subst_value="true"/>
     </node>
 
 </launch>

@@ -21,14 +21,15 @@
 #include "wolf_exploration/costmap_server.h"
 
 #include <thread>
+#ifdef RT_GUI
 #include <rt_gui/rt_gui_client.h>
+#endif
 #include <ros/ros.h>
 #include <artifacts_mapping/addClass.h>
 #include <std_srvs/Empty.h>
 
 #define NODE_NAME "artifacts_search_node"
 
-using namespace rt_gui;
 using namespace wolf_exploration;
 
 static ArtifactsSearch::Ptr _artifacts_search;
@@ -82,21 +83,25 @@ int main(int argc, char** argv)
   _artifacts_search.reset(new ArtifactsSearch());
 
   // create interface
+  #ifdef RT_GUI
   ros::param::set("/artifacts_search/artifact_name","artifact");
-  if(RtGuiClient::getIstance().init("wolf_panel","artifacts_search"))
+  if(rt_gui::RtGuiClient::getIstance().init("wolf_panel","artifacts_search"))
   {
-    RtGuiClient::getIstance().addText(std::string("artifacts_search"),std::string("artifact_name"),&searchArtifact,false);
+    rt_gui::RtGuiClient::getIstance().addText(std::string("artifacts_search"),std::string("artifact_name"),&searchArtifact,false);
     //RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Start"),std::bind(&ArtifactsSearch::start,&artifacts_search));
-    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Stop"),stop);
-    RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Reset"),reset);
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Stop"),stop);
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("artifacts_search"),std::string("Reset"),reset);
   }
+  #endif
 
   std::thread artifacts_search_loop(std::bind(&ArtifactsSearch::makePlan,_artifacts_search));
 
   ros::Rate rate(50.0);
   while(ros::ok())
   {
-    RtGuiClient::getIstance().sync();
+    #ifdef RT_GUI
+    rt_gui::RtGuiClient::getIstance().sync();
+    #endif
     rate.sleep();
   }
 

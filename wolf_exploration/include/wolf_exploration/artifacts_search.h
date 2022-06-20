@@ -10,6 +10,7 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <mutex>
 
 #include "wolf_exploration/costmap_client.h"
 

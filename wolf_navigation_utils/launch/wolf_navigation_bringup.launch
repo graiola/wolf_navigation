@@ -21,6 +21,7 @@
     <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
     <arg name="mapping" default="true" />
     <arg name="command_vel" default="" />
+    <arg name="odom_twist_in_local_frame" default="false" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">

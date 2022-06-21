@@ -59,6 +59,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 ## Specify additional locations of header files
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${rt_gui_INCLUDE_DIRS}
+  ${artifacts_mapping_INCLUDE_DIRS}
   include
 )
 
@@ -74,7 +76,7 @@ target_link_libraries(exploration_tools ${catkin_LIBRARIES})
 
 add_executable(map_explorer_node src/map_explorer_node.cpp)
 add_dependencies(map_explorer_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(map_explorer_node exploration_tools ${catkin_LIBRARIES})
+target_link_libraries(map_explorer_node exploration_tools ${catkin_LIBRARIES} ${rt_gui_LIBRARIES})
 
 
 if(${artifacts_mapping_FOUND})
@@ -82,7 +84,7 @@ if(${artifacts_mapping_FOUND})
 
     add_executable(artifacts_search_node src/artifacts_search_node.cpp)
     add_dependencies(artifacts_search_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-    target_link_libraries(artifacts_search_node exploration_tools ${catkin_LIBRARIES})
+    target_link_libraries(artifacts_search_node exploration_tools ${catkin_LIBRARIES} ${rt_gui_LIBRARIES} ${artifacts_mapping_LIBRARIES})
 
     # install nodes
     install(TARGETS artifacts_search_node

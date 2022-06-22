@@ -3,19 +3,26 @@
   <name>wolf_exploration</name>
   <version>0.0.1</version>
 
-  <description>Lightweight frontier-based exploration.</description>
+  <description> This is a package containing various tools for exploration of enviroments </description>
 
-  <author email="laeqten@gmail.com">Jiri Horner</author>
-  <maintainer email="laeqten@gmail.com">Jiri Horner</maintainer>
-  <license>BSD</license>
-  <url>http://wiki.ros.org/explore_lite</url>
+  <author email="gennaro.raiola@gmail.com"> Gennaro Raiola </author>
+  <maintainer email="gennaro.raiola@gmail.com"> Gennaro Raiola </maintainer>
+
+  <license>GNU General Public License v3.0</license>
 
   <!-- acknowledgements
+
   <author>Charles DuHadway</author>
   <url>http://ros.org/wiki/explore</url>
+
   <author>Paul Bovbel</author>
   <url>https://github.com/paulbovbel/frontier_exploration</url>
+
+   <author>Jiri Horner</author>
+   <url>https://github.com/hrnr/m-explore</url>
+
   -->
+
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roscpp</depend>
@@ -29,8 +36,8 @@
   <depend>tf</depend>
   <depend>costmap_2d</depend>
   <depend>actionlib</depend>
-  <depend>rt_gui</depend>
+  <depend>costmap_converter</depend>
   <depend>wolf_navigation_utils</depend>
-
   <test_depend>roslaunch</test_depend>
+
 </package>

@@ -34,8 +34,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  *********************************************************************/
-#ifndef NAV_EXPLORE_H_
-#define NAV_EXPLORE_H_
+
+#ifndef WOLF_EXPLORATION_MAP_EXPLORER_H
+#define WOLF_EXPLORATION_MAP_EXPLORER_H
 
 #include <memory>
 #include <mutex>
@@ -51,18 +52,22 @@
 #include "wolf_exploration/costmap_client.h"
 #include "wolf_exploration/frontier_search.h"
 
-namespace explore
+namespace wolf_exploration
 {
 /**
- * @class Explore
+ * @class MapExplorer
  * @brief A class adhering to the robot_actions::Action interface that moves the
  * robot base to explore its environment.
  */
-class Explore
+class MapExplorer
 {
+
 public:
-  Explore();
-  ~Explore();
+
+  const std::string CLASS_NAME = "MapExplorer";
+
+  MapExplorer();
+  ~MapExplorer();
 
   /**
    * @brief  Start exploration
@@ -75,7 +80,7 @@ public:
   void stop();
 
   /**
-   * @brief Make a global plan
+   * @brief Create a plan
    */
   void makePlan();
 

@@ -34,8 +34,8 @@
  *
  *********************************************************************/
 
-#ifndef COSTMAP_CLIENT_
-#define COSTMAP_CLIENT_
+#ifndef WOLF_EXPLORATION_COSTMAP_CLIENT_H
+#define WOLF_EXPLORATION_COSTMAP_CLIENT_H
 
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Pose.h>
@@ -45,7 +45,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
-namespace explore
+namespace wolf_exploration
 {
 class Costmap2DClient
 {

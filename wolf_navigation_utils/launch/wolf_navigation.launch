@@ -22,6 +22,7 @@
     <arg name="robot_params" default="$(eval find(arg('robot_name') + '_description') + '/params/navigation')"/>
     <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />
     <arg name="mapping" default="true" />
+    <arg name="artifacts_mapping" default="false" />
     <arg name="command_vel" default="/$(arg robot_name)/wolf_controller/twist" />
 
     <include file="$(find wolf_navigation_utils)/launch/wolf_navigation_bringup.launch">
@@ -44,9 +45,9 @@
         <arg name="robot_params" value="$(arg robot_params)"/>
         <arg name="map_file" value="$(arg map_file)" />
         <arg name="mapping" value="$(arg mapping)" />
+        <arg name="artifacts_mapping" default="$(arg artifacts_mapping)" />
         <arg name="command_vel" default="$(arg command_vel)" />
     </include>
-
 
     <!-- Launch the controller -->
     <include file="$(find wolf_controller)/launch/wolf_controller_bringup.launch" if="$(arg launch_controller)" >

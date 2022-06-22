@@ -17,17 +17,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "wolf_exploration/explore.h"
+#include "wolf_exploration/map_explorer.h"
 
 #include <thread>
+#ifdef RT_GUI
 #include <rt_gui/rt_gui_client.h>
+#endif
 #include <ros/ros.h>
 #include <wolf_navigation_utils/map_saver.h>
 
-#define NODE_NAME "explore_node"
+#define NODE_NAME "map_explorer_node"
 
-using namespace rt_gui;
 using namespace wolf_navigation_utils;
+using namespace wolf_exploration;
 
 void saveExploredMap(std::string mapname)
 {
@@ -48,27 +50,31 @@ int main(int argc, char** argv)
   //  ros::console::notifyLoggerLevelsChanged();
   //}
 
-  explore::Explore explore;
+  MapExplorer map_explorer;
 
   // create interface
-  ros::param::set("/explore/save_map_to","map");
-  if(RtGuiClient::getIstance().init("wolf_panel","explore"))
+  #ifdef RT_GUI
+  ros::param::set("/map_explorer/save_map_to","map");
+  if(rt_gui::RtGuiClient::getIstance().init("wolf_panel","map_explorer"))
   {
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Start"),std::bind(&explore::Explore::start,&explore));
-    RtGuiClient::getIstance().addTrigger(std::string("explore"),std::string("Stop"),std::bind(&explore::Explore::stop,&explore));
-    RtGuiClient::getIstance().addText(std::string("explore"),std::string("save_map_to"),&saveExploredMap,false);
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Start"),std::bind(&MapExplorer::start,&map_explorer));
+    rt_gui::RtGuiClient::getIstance().addTrigger(std::string("map_explorer"),std::string("Stop"),std::bind(&MapExplorer::stop,&map_explorer));
+    rt_gui::RtGuiClient::getIstance().addText(std::string("map_explorer"),std::string("save_map_to"),&saveExploredMap,false);
   }
+  #endif
 
-  std::thread exploration_loop(std::bind(&explore::Explore::makePlan,&explore));
+  std::thread map_exploration_loop(std::bind(&MapExplorer::makePlan,&map_explorer));
 
   ros::Rate rate(50.0);
   while(ros::ok())
   {
-    RtGuiClient::getIstance().sync();
+    #ifdef RT_GUI
+    rt_gui::RtGuiClient::getIstance().sync();
+    #endif
     rate.sleep();
   }
 
-  exploration_loop.join();
+  map_exploration_loop.join();
 
   return 0;
 }

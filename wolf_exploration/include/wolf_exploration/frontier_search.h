@@ -1,5 +1,5 @@
-#ifndef FRONTIER_SEARCH_H_
-#define FRONTIER_SEARCH_H_
+#ifndef WOLF_EXPLORATION_FRONTIER_SEARCH_H
+#define WOLF_EXPLORATION_FRONTIER_SEARCH_H
 
 #include <costmap_2d/costmap_2d.h>
 

@@ -55,17 +55,17 @@ void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, con
 
   if(n_trackingcameras == 1)
   {
-    single_camera_sub_ = nh_.subscribe(trackingcamera_topics[0],20,&RosWrapper::singleCameraCallback,this);
     camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame));
+    single_camera_sub_ = nh_.subscribe(trackingcamera_topics[0],20,&RosWrapper::singleCameraCallback,this);  
   }
   else if (n_trackingcameras == 2)
   {
+      camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 0
+      camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 1
       multi_camera_0_sub_.subscribe(nh_,trackingcamera_topics[0],20);
       multi_camera_1_sub_.subscribe(nh_,trackingcamera_topics[1],20);
       multi_camera_sync_ = std::make_shared<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry> >(multi_camera_0_sub_,multi_camera_1_sub_,20);
       multi_camera_sync_->registerCallback(boost::bind(&RosWrapper::multiCameraCallback,this,_1,_2));
-      camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 0
-      camera_estimators_.push_back(std::make_shared<TrackingCameraEstimator>(twist_in_local_frame)); // 1
   }
   else
       throw std::runtime_error("RosWrapper supports maximum 2 tracking cameras!");

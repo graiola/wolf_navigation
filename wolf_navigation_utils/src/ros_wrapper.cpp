@@ -42,7 +42,7 @@ RosWrapper::RosWrapper(ros::NodeHandle &nh)
   nh_ = nh;
 }
 
-void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, const std::vector<std::string>& contact_names, const std::string& base_frame_id, const std::string& basefoot_frame_id, bool twist_in_local_frame)
+void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, const std::vector<std::string>& contact_names, const std::string& base_frame_id, const std::string& basefoot_frame_id, bool twist_in_local_frame, const std::vector<double> initial_offset)
 {
   //trackingcamera_topic_ = trackingcamera_topic;
 
@@ -59,6 +59,15 @@ void RosWrapper::init(const std::vector<std::string>& trackingcamera_topics, con
     contact_names_ = contact_names;
     basefoot_estimation_on_ = true;
   }
+
+  if(initial_offset.empty())
+  {
+    initial_offset_.push_back(0.0); // x
+    initial_offset_.push_back(0.0); // y
+    initial_offset_.push_back(0.0); // z
+  }
+  else
+    initial_offset_ = initial_offset;
 
   size_t n_trackingcameras = trackingcamera_topics.size();
 
@@ -86,6 +95,10 @@ void RosWrapper::updateCamera(const unsigned int &camera_id, const nav_msgs::Odo
   tmp_isometry3d_.linear() = Eigen::Quaterniond(odom_msg->pose.pose.orientation.w,odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z).toRotationMatrix();
   tf2::fromMsg(odom_msg->twist.twist, tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
+
+  tmp_isometry3d_.translation().x() = tmp_isometry3d_.translation().x() + initial_offset_[0];
+  tmp_isometry3d_.translation().y() = tmp_isometry3d_.translation().y() + initial_offset_[1];
+  tmp_isometry3d_.translation().z() = tmp_isometry3d_.translation().z() + initial_offset_[2];
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
 
   tf2::covarianceToEigen(odom_msg->pose.covariance,tmp_matrix6d_);

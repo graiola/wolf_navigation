@@ -87,6 +87,7 @@ protected:
   ros::Time basefoot_pub_t_;
   ros::Time basefoot_pub_t_prev_;
   std::vector<std::string> contact_names_;
+  std::vector<double> initial_offset_;
 
   std::vector<TrackingCameraEstimator::Ptr> camera_estimators_;
   BasefootEstimator basefoot_estimator_;

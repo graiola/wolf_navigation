@@ -49,14 +49,16 @@ int main(int argc, char** argv)
   std::string base_frame_id;
   bool twist_in_local_frame;
   std::vector<std::string> contact_names;
+  std::vector<double> initial_offset;
   n.getParam("trackingcamera_topics", trackingcamera_topics);
   n.getParam("basefoot_frame_id", basefoot_frame_id);
   n.getParam("base_frame_id", base_frame_id);
   n.getParam("twist_in_local_frame", twist_in_local_frame);
   n.getParam("contact_names", contact_names);
+  n.getParam("initial_offset", initial_offset);
 
   wolf_navigation::RosWrapper wrapper(n);
-  wrapper.init(trackingcamera_topics,contact_names,base_frame_id,basefoot_frame_id,twist_in_local_frame);
+  wrapper.init(trackingcamera_topics,contact_names,base_frame_id,basefoot_frame_id,twist_in_local_frame,initial_offset);
 
   ros::spin();
 

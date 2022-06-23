@@ -24,6 +24,8 @@
 #include <Eigen/Geometry>
 
 #include <memory>
+#include <vector>
+#include <iostream>
 
 namespace Eigen
 {
@@ -63,6 +65,24 @@ inline Eigen::Matrix3d rpyToRot(const Eigen::Vector3d& rpy)
        -s_p    ,  c_p*s_r                               ,  c_r*c_p;
 
   return R;
+}
+
+inline void rpyToRotTranspose(const double& roll, const double& pitch, const double& yaw, Eigen::Matrix3d& R)
+{
+  R.setZero();
+
+  double c_y = std::cos(yaw);
+  double s_y = std::sin(yaw);
+
+  double c_r = std::cos(roll);
+  double s_r = std::sin(roll);
+
+  double c_p = std::cos(pitch);
+  double s_p = std::sin(pitch);
+
+  R << c_p*c_y               ,  c_p*s_y                ,  -s_p,
+      s_r*s_p*c_y - c_r*s_y ,  s_r*s_p*s_y + c_r*c_y  ,  s_r*c_p,
+      c_r*s_p*c_y + s_r*s_y ,  c_r*s_p*s_y - s_r*c_y  ,  c_r*c_p;
 }
 
 
@@ -129,6 +149,38 @@ private:
     Eigen::Vector6d odom_X_base_; // pose6d
 
     bool twist_in_local_frame_;
+
+};
+
+
+class BasefootEstimator
+{
+
+public:
+    BasefootEstimator();
+
+    void setContacts(const std::vector<bool> &foot_contacts, std::vector<double> &foot_height);
+
+    const Eigen::Isometry3d& getBasefootInBase();
+
+    const Eigen::Isometry3d& getBasefootInOdom();
+
+    void setBaseInOdom(const Eigen::Isometry3d& pose);
+
+    void update();
+
+private:
+    double estimateHeight();
+
+    std::vector<bool> foot_contacts_;
+    std::vector<double> foot_height_;
+    Eigen::Isometry3d base_T_basefoot_;
+    Eigen::Isometry3d odom_T_basefoot_;
+    Eigen::Isometry3d odom_T_base_;
+    Eigen::Isometry3d basefoot_T_odom_;
+
+    Eigen::Vector3d tmp_v_;
+    Eigen::Matrix3d tmp_R_;
 
 };
 

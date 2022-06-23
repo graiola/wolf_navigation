@@ -58,7 +58,7 @@ public:
 
   ~RosWrapper() {}
 
-  void init(const std::vector<std::string> &trackingcamera_topics, const std::string& child_frame_id, bool twist_in_local_frame = false);
+  void init(const std::vector<std::string> &trackingcamera_topics, const std::vector<std::string> &contact_names, const std::string& base_frame_id, const std::string& basefoot_frame_id, bool twist_in_local_frame = false);
 
   void singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg);
 
@@ -66,25 +66,30 @@ public:
 
 protected:
 
-  std::string child_frame_id_;
+  std::string basefoot_frame_id_;
+  std::string base_frame_id_;
   std::string odom_frame_id_;
   std::string odom_topic_;
+  bool basefoot_estimation_on_;
 
   ros::NodeHandle nh_;
   ros::Subscriber single_camera_sub_;
   message_filters::Subscriber<nav_msgs::Odometry> multi_camera_0_sub_;
   message_filters::Subscriber<nav_msgs::Odometry> multi_camera_1_sub_;
   std::shared_ptr<message_filters::TimeSynchronizer<nav_msgs::Odometry,nav_msgs::Odometry>> multi_camera_sync_;
-  geometry_msgs::TransformStamped transform_msg_out_;
   nav_msgs::Odometry odom_msg_out_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   ros::Publisher odom_publisher_;
-  ros::Time t_;
-  ros::Time t_prev_;
+  ros::Time odom_pub_t_;
+  ros::Time odom_pub_t_prev_;
+  ros::Time basefoot_pub_t_;
+  ros::Time basefoot_pub_t_prev_;
+  std::vector<std::string> contact_names_;
 
   std::vector<TrackingCameraEstimator::Ptr> camera_estimators_;
+  BasefootEstimator basefoot_estimator_;
 
   Eigen::Isometry3d tmp_isometry3d_;
   Eigen::Vector3d tmp_vector3d_;
@@ -97,7 +102,9 @@ private:
 
   void updateCamera(const unsigned int& camera_id, const nav_msgs::Odometry::ConstPtr& odom_msg);
 
-  void publish(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov);
+  void publishOdom(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov, const std::string &child_frame_id);
+
+  void publishBasefoot(const Eigen::Isometry3d &pose);
 
 };
 

@@ -30,6 +30,7 @@
         <remap from="cloud_in" to="/$(arg velodyne_pointcloud_topic)"/>
         <param name="use_inf" value="false"/>
         <param name="range_max" value="200"/>
+        <param name="max_height" value="0.7"/>
         <remap from="scan" to="$(arg scan_topic)" />
     </node>
 

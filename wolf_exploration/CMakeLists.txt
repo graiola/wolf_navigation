@@ -112,17 +112,3 @@ install(TARGETS exploration_tools map_explorer_node
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 )
-
-#############
-## Testing ##
-#############
-if(CATKIN_ENABLE_TESTING)
-  find_package(roslaunch REQUIRED)
-
-  add_executable(test_cluster src/test.cpp)
-  add_dependencies(test_cluster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-  target_link_libraries(test_cluster exploration_tools ${catkin_LIBRARIES})
-
-  # test all launch files
-  roslaunch_add_file_check(launch)
-endif()

@@ -67,6 +67,26 @@ inline Eigen::Matrix3d rpyToRot(const Eigen::Vector3d& rpy)
   return R;
 }
 
+inline Eigen::Matrix3d rpyToRot(const double& roll, const double& pitch, const double& yaw, Eigen::Matrix3d& R)
+{
+  R.setZero();
+
+  double c_y = std::cos(yaw);
+  double s_y = std::sin(yaw);
+
+  double c_r = std::cos(roll);
+  double s_r = std::sin(roll);
+
+  double c_p = std::cos(pitch);
+  double s_p = std::sin(pitch);
+
+  R << c_p*c_y ,  s_r*s_p*c_y - c_r*s_y                 ,  c_r*s_p*c_y + s_r*s_y  ,
+       c_p*s_y ,  s_r*s_p*s_y + c_r*c_y                 ,  s_y*s_p*c_r - c_y*s_r,
+       -s_p    ,  c_p*s_r                               ,  c_r*c_p;
+
+  return R;
+}
+
 inline void rpyToRotTranspose(const double& roll, const double& pitch, const double& yaw, Eigen::Matrix3d& R)
 {
   R.setZero();

@@ -155,7 +155,6 @@ void BasefootEstimator::update()
   // Reset
   base_T_basefoot_.setIdentity();
   odom_T_basefoot_.setIdentity();
-  odom_T_base_.setIdentity();
   basefoot_T_odom_.setIdentity();
   tmp_v_.setZero();
   tmp_R_.setIdentity();

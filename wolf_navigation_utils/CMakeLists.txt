@@ -27,7 +27,7 @@ include_directories(
 )
 
 # odom publisher node
-add_executable(odom_publisher_node src/ros_wrapper.cpp src/estimators.cpp src/odom_publisher_node.cpp)
+add_executable(odom_publisher_node src/odom_publisher.cpp src/estimators.cpp src/odom_publisher_node.cpp)
 target_link_libraries(odom_publisher_node ${catkin_LIBRARIES})
 
 # utils library

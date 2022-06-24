@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef WOLF_NAVIGATION_UTILS_ROS_WRAPPER_H
-#define WOLF_NAVIGATION_UTILS_ROS_WRAPPER_H
+#ifndef WOLF_NAVIGATION_UTILS_ODOM_PUBLISHER_H
+#define WOLF_NAVIGATION_UTILS_ODOM_PUBLISHER_H
 
 #include <ros/ros.h>
 #include <tf2/transform_datatypes.h>
@@ -36,29 +36,29 @@
 
 namespace wolf_navigation {
 
-class RosWrapper
+class OdomPublisher
 {
 
 public:
 
-  const std::string CLASS_NAME = "RosWrapper";
+  const std::string CLASS_NAME = "OdomPublisher";
 
   /**
-   * @brief Shared pointer to RosWrapper
+   * @brief Shared pointer to OdomPublisher
    */
-  typedef std::shared_ptr<RosWrapper> Ptr;
+  typedef std::shared_ptr<OdomPublisher> Ptr;
 
   /**
-   * @brief Shared pointer to const RosWrapper
+   * @brief Shared pointer to const OdomPublisher
    */
-  typedef std::shared_ptr<const RosWrapper> ConstPtr;
+  typedef std::shared_ptr<const OdomPublisher> ConstPtr;
 
 
-  RosWrapper(ros::NodeHandle& nh);
+  OdomPublisher(ros::NodeHandle& nh);
 
-  ~RosWrapper() {}
+  ~OdomPublisher() {}
 
-  void init(const std::vector<std::string> &trackingcamera_topics, const std::vector<std::string> &contact_names, const std::string& base_frame_id, const std::string& basefoot_frame_id, bool twist_in_local_frame = false);
+  void init();
 
   void singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg);
 
@@ -87,7 +87,12 @@ protected:
   ros::Time basefoot_pub_t_;
   ros::Time basefoot_pub_t_prev_;
   std::vector<std::string> contact_names_;
-  std::vector<double> initial_offset_;
+
+  std::vector<bool> contacts_;
+  std::vector<double> heights_;
+  Eigen::Isometry3d odom_T_base_;
+  Eigen::Isometry3d odom_T_basefoot_;
+  Eigen::Isometry3d basefoot_T_base_;
 
   std::vector<TrackingCameraEstimator::Ptr> camera_estimators_;
   BasefootEstimator basefoot_estimator_;
@@ -101,9 +106,11 @@ protected:
 
 private:
 
+  void updateBasefoot(const Eigen::Isometry3d& odom_T_base);
+
   void updateCamera(const unsigned int& camera_id, const nav_msgs::Odometry::ConstPtr& odom_msg);
 
-  void publishOdom(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov, const std::string &child_frame_id);
+  void publishOdom(const Eigen::Isometry3d &pose, const Eigen::Matrix6d &pose_cov, const Eigen::Vector6d twist, const Eigen::Matrix6d &twist_cov);
 
   void publishBasefoot(const Eigen::Isometry3d &pose);
 

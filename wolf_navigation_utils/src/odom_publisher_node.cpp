@@ -31,7 +31,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <nav_msgs/Odometry.h>
 
-#include "wolf_navigation_utils/ros_wrapper.h"
+#include "wolf_navigation_utils/odom_publisher.h"
 
 #define NODE_NAME "odom_publisher_node"
 
@@ -43,22 +43,8 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n(ns); // load the relative namespace
 
-  // get ROS params
-  std::vector<std::string> trackingcamera_topics;
-  std::string basefoot_frame_id;
-  std::string base_frame_id;
-  bool twist_in_local_frame;
-  std::vector<std::string> contact_names;
-  std::vector<double> initial_offset;
-  n.getParam("trackingcamera_topics", trackingcamera_topics);
-  n.getParam("basefoot_frame_id", basefoot_frame_id);
-  n.getParam("base_frame_id", base_frame_id);
-  n.getParam("twist_in_local_frame", twist_in_local_frame);
-  n.getParam("contact_names", contact_names);
-  n.getParam("initial_offset", initial_offset);
-
-  wolf_navigation::RosWrapper wrapper(n);
-  wrapper.init(trackingcamera_topics,contact_names,base_frame_id,basefoot_frame_id,twist_in_local_frame,initial_offset);
+  wolf_navigation::OdomPublisher odom_publisher(n);
+  odom_publisher.init();
 
   ros::spin();
 

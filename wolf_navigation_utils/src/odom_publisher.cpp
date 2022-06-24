@@ -103,6 +103,8 @@ void OdomPublisher::init()
   {
     try
     {
+      while(!tf_buffer_.canTransform(base_frame_id_,basefoot_frame_id_,ros::Time(0)))
+        ros::Duration(1.0).sleep();
       tmp_isometry3d_ = tf2::transformToEigen(tf_buffer_.lookupTransform(base_frame_id_,basefoot_frame_id_,ros::Time(0))); // basefoot_T_base
     }
     catch (tf2::TransformException &ex)
@@ -214,6 +216,8 @@ void OdomPublisher::updateBasefoot(const Eigen::Isometry3d& odom_T_base)
   {
     try
     {
+      while(!tf_buffer_.canTransform(contact_names_[i],base_frame_id_,ros::Time(0)))
+        ros::Duration(1.0).sleep();
       tmp_isometry3d_ = tf2::transformToEigen(tf_buffer_.lookupTransform(contact_names_[i],base_frame_id_,ros::Time(0)));
     }
     catch (tf2::TransformException &ex)

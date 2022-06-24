@@ -87,6 +87,7 @@ protected:
   ros::Time basefoot_pub_t_;
   ros::Time basefoot_pub_t_prev_;
   std::vector<std::string> contact_names_;
+  double initial_height_;
 
   std::vector<bool> contacts_;
   std::vector<double> heights_;

@@ -36,6 +36,7 @@ void eigenToCovariance(const Eigen::Matrix6d& in, boost::array<double, 36>& out)
 
 OdomPublisher::OdomPublisher(ros::NodeHandle &nh)
   : basefoot_estimation_on_(false)
+  , initial_height_(0.0)
   , tf_listener_(tf_buffer_)
 {
   odom_pub_t_ = odom_pub_t_prev_ = basefoot_pub_t_ = basefoot_pub_t_prev_ = ros::Time::now();
@@ -44,8 +45,6 @@ OdomPublisher::OdomPublisher(ros::NodeHandle &nh)
 
 void OdomPublisher::init()
 {
-  //trackingcamera_topic_ = trackingcamera_topic;
-
   // get ROS params
   std::vector<std::string> trackingcamera_topics;
   std::string base_frame_id;
@@ -94,6 +93,28 @@ void OdomPublisher::init()
   }
   else
     throw std::runtime_error("OdomPublisher: it supports maximum 2 tracking cameras.");
+
+  // Calculate the initial height
+  if(!basefoot_estimation_on_) // In this case the transform between base and basefoot is given externally
+  {
+    try
+    {
+      tmp_isometry3d_ = tf2::transformToEigen(tf_buffer_.lookupTransform(base_frame_id_,basefoot_frame_id_,ros::Time(0))); // basefoot_T_base
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_WARN_NAMED(CLASS_NAME,"%s",ex.what());
+    }
+    initial_height_ = tmp_isometry3d_.translation().z();
+  }
+  else
+  {
+     tmp_isometry3d_.setIdentity(); // We don't need odom_T_base at the moment
+     updateBasefoot(tmp_isometry3d_);
+     initial_height_ = basefoot_T_base_.translation().z();
+  }
+
+  ROS_INFO_NAMED(CLASS_NAME,"Initial robot height is: %f",initial_height_);
 }
 
 void OdomPublisher::updateCamera(const unsigned int &camera_id, const nav_msgs::Odometry::ConstPtr &odom_msg)
@@ -169,8 +190,8 @@ void OdomPublisher::publishBasefoot(const Eigen::Isometry3d &pose)
     transform_msg_out = tf2::eigenToTransform(pose);
     transform_msg_out.header.seq++;
     transform_msg_out.header.stamp = basefoot_pub_t_;
-    transform_msg_out.header.frame_id = basefoot_frame_id_; // FIXME
-    transform_msg_out.child_frame_id = base_frame_id_; // FIXME
+    transform_msg_out.header.frame_id = basefoot_frame_id_;
+    transform_msg_out.child_frame_id = base_frame_id_;
     tf_broadcaster_.sendTransform(transform_msg_out);
   }
   basefoot_pub_t_prev_ = basefoot_pub_t_;
@@ -186,24 +207,20 @@ void OdomPublisher::updateBasefoot(const Eigen::Isometry3d& odom_T_base)
     }
     catch (tf2::TransformException &ex)
     {
-      ROS_WARN("%s",ex.what());
+      ROS_WARN_NAMED(CLASS_NAME,"%s",ex.what());
     }
     contacts_.push_back(true); // FIXME get contact status from outside
     heights_.push_back(tmp_isometry3d_.translation().z());
   }
-  //odom_T_base_ = camera_estimators_[0]->getBasePose();
   basefoot_estimator_.setContacts(contacts_,heights_);
   basefoot_estimator_.setBaseInOdom(odom_T_base);
   basefoot_estimator_.update();
   basefoot_T_base_ = basefoot_estimator_.getBasefootInBase().inverse();
   odom_T_basefoot_ = basefoot_estimator_.getBasefootInOdom();
-  //publishBasefoot(base_T_basefoot.inverse());
-  //publishOdom(odom_T_basefoot,camera_estimators_[0]->getBasePoseCovariance(),camera_estimators_[0]->getBaseTwist(),camera_estimators_[0]->getBaseTwistCovariance(),basefoot_frame_id_);
 }
 
 void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr &odom_msg_1)
 {
-
   std::string child_frame_id;
   if(basefoot_estimation_on_)
     child_frame_id = base_frame_id_;
@@ -217,7 +234,7 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
   }
   catch (tf2::TransformException &ex)
   {
-    ROS_WARN("%s",ex.what());
+    ROS_WARN_NAMED(CLASS_NAME,"%s",ex.what());
   }
 
   // Camera 0
@@ -240,8 +257,6 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
   tmp_matrix6d_ =   (camera_estimators_[0]->getBasePoseCovariance() + camera_estimators_[1]->getBasePoseCovariance())/2.0;
   tmp_matrix6d_1_ = (camera_estimators_[0]->getBaseTwistCovariance() + camera_estimators_[1]->getBaseTwistCovariance())/2.0;
 
-  //publishOdom(tmp_isometry3d_,tmp_matrix6d_,tmp_vector6d_,tmp_matrix6d_1_);
-
   if(basefoot_estimation_on_)
   {
     updateBasefoot(odom_T_base_);
@@ -254,7 +269,6 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
 
 void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 {
-
   std::string child_frame_id;
   if(basefoot_estimation_on_)
     child_frame_id = base_frame_id_;
@@ -267,7 +281,7 @@ void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odo
   }
   catch (tf2::TransformException &ex)
   {
-    ROS_WARN("%s",ex.what());
+    ROS_WARN_NAMED(CLASS_NAME,"%s",ex.what());
   }
 
   updateCamera(0,odom_msg);
@@ -282,5 +296,4 @@ void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odo
   }
   else
     publishOdom(odom_T_base_,camera_estimators_[0]->getBasePoseCovariance(),camera_estimators_[0]->getBaseTwist(),camera_estimators_[0]->getBaseTwistCovariance());
-
 }

@@ -129,7 +129,7 @@ void OdomPublisher::updateCamera(const unsigned int &camera_id, const nav_msgs::
   tmp_isometry3d_.linear() = Eigen::Quaterniond(odom_msg->pose.pose.orientation.w,odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z).toRotationMatrix();
   tf2::fromMsg(odom_msg->twist.twist, tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
-  camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
+  camera_estimators_[camera_id]->setCameraPoseInOdom(tmp_isometry3d_);
 
   tf2::covarianceToEigen(odom_msg->pose.covariance,tmp_matrix6d_);
   camera_estimators_[camera_id]->setCameraPoseCovariance(tmp_matrix6d_);
@@ -221,10 +221,10 @@ void OdomPublisher::updateBasefoot(const Eigen::Isometry3d& odom_T_base)
     heights_.push_back(tmp_isometry3d_.translation().z());
   }
   basefoot_estimator_.setContacts(contacts_,heights_);
-  basefoot_estimator_.setBaseInOdom(odom_T_base);
+  basefoot_estimator_.setBasePoseInOdom(odom_T_base);
   basefoot_estimator_.update();
-  basefoot_T_base_ = basefoot_estimator_.getBasefootInBase().inverse();
-  odom_T_basefoot_ = basefoot_estimator_.getBasefootInOdom();
+  basefoot_T_base_ = basefoot_estimator_.getBasefootPoseInBase().inverse();
+  odom_T_basefoot_ = basefoot_estimator_.getBasefootPoseInOdom();
 }
 
 void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom_msg_0, const nav_msgs::Odometry::ConstPtr &odom_msg_1)
@@ -237,8 +237,8 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
 
   try
   {
-    camera_estimators_[0]->setBaseCameraTransform(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg_0->child_frame_id,child_frame_id,ros::Time(0))));
-    camera_estimators_[1]->setBaseCameraTransform(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg_1->child_frame_id,child_frame_id,ros::Time(0))));
+    camera_estimators_[0]->setBasePoseInCamera(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg_0->child_frame_id,child_frame_id,ros::Time(0))));
+    camera_estimators_[1]->setBasePoseInCamera(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg_1->child_frame_id,child_frame_id,ros::Time(0))));
   }
   catch (tf2::TransformException &ex)
   {
@@ -252,7 +252,7 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
   updateCamera(1,odom_msg_1);
 
   // Pose
-  tmp_vector6d_ = weightedArithmeticMean(camera_estimators_[0]->getBasePose6d(),camera_estimators_[1]->getBasePose6d(),
+  tmp_vector6d_ = weightedArithmeticMean(camera_estimators_[0]->getBasePose6dInOdom(),camera_estimators_[1]->getBasePose6dInOdom(),
       camera_estimators_[0]->getBasePoseCovariance(),camera_estimators_[1]->getBasePoseCovariance());
   odom_T_base_.translation() = tmp_vector6d_.head(3);
   odom_T_base_.linear() = rpyToRot(tmp_vector6d_.tail(3));
@@ -289,7 +289,7 @@ void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odo
 
   try
   {
-    camera_estimators_[0]->setBaseCameraTransform(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg->child_frame_id,child_frame_id,ros::Time(0))));
+    camera_estimators_[0]->setBasePoseInCamera(tf2::transformToEigen(tf_buffer_.lookupTransform(odom_msg->child_frame_id,child_frame_id,ros::Time(0))));
   }
   catch (tf2::TransformException &ex)
   {
@@ -298,7 +298,7 @@ void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odo
 
   updateCamera(0,odom_msg);
 
-  odom_T_base_ = camera_estimators_[0]->getBasePose();
+  odom_T_base_ = camera_estimators_[0]->getBasePoseInOdom();
 
   // Apply initial robot height offset
   if(initial_height_offset_on_)

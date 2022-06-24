@@ -47,12 +47,12 @@ TrackingCameraEstimator::TrackingCameraEstimator(bool twist_in_local_frame)
   base_pose_cov_ = base_twist_cov_ = trackingcamera_pose_cov_ = trackingcamera_twist_cov_ = Eigen::Matrix6d::Identity();
 }
 
-void TrackingCameraEstimator::setBaseCameraTransform(const Eigen::Isometry3d &trackingcamera_T_base)
+void TrackingCameraEstimator::setBasePoseInCamera(const Eigen::Isometry3d &trackingcamera_T_base)
 {
   trackingcamera_T_base_ = trackingcamera_T_base;
 }
 
-void TrackingCameraEstimator::setCameraPose(const Eigen::Isometry3d &odom_T_trackingcamera)
+void TrackingCameraEstimator::setCameraPoseInOdom(const Eigen::Isometry3d &odom_T_trackingcamera)
 {
   odom_T_trackingcamera_ = odom_T_trackingcamera;
 }
@@ -82,12 +82,12 @@ void TrackingCameraEstimator::setCameraTwist(const Eigen::Vector6d &trackingcame
   trackingcamera_twist_ = trackingcamera_twist;
 }
 
-const Eigen::Isometry3d &TrackingCameraEstimator::getBasePose()
+const Eigen::Isometry3d &TrackingCameraEstimator::getBasePoseInOdom()
 {
   return odom_T_base_;
 }
 
-const Eigen::Vector6d &TrackingCameraEstimator::getBasePose6d()
+const Eigen::Vector6d &TrackingCameraEstimator::getBasePose6dInOdom()
 {
   return odom_X_base_;
 }
@@ -135,17 +135,17 @@ void BasefootEstimator::setContacts(const std::vector<bool> &foot_contacts, std:
   }
 }
 
-void BasefootEstimator::setBaseInOdom(const Eigen::Isometry3d& pose)
+void BasefootEstimator::setBasePoseInOdom(const Eigen::Isometry3d& pose)
 {
   odom_T_base_ = pose;
 }
 
-const Eigen::Isometry3d &BasefootEstimator::getBasefootInBase()
+const Eigen::Isometry3d &BasefootEstimator::getBasefootPoseInBase()
 {
   return base_T_basefoot_;
 }
 
-const Eigen::Isometry3d &BasefootEstimator::getBasefootInOdom()
+const Eigen::Isometry3d &BasefootEstimator::getBasefootPoseInOdom()
 {
   return odom_T_basefoot_;
 }

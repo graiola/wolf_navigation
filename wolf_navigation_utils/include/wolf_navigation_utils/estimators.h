@@ -133,8 +133,8 @@ public:
     ~TrackingCameraEstimator() {}
 
     // Sets
-    void setBaseCameraTransform(const Eigen::Isometry3d& trackingcamera_T_base);
-    void setCameraPose(const Eigen::Isometry3d& odom_T_trackingcamera);
+    void setBasePoseInCamera(const Eigen::Isometry3d& trackingcamera_T_base);
+    void setCameraPoseInOdom(const Eigen::Isometry3d& odom_T_trackingcamera);
     void setCameraTwist(const Eigen::Vector6d &trackingcamera_twist);
     void setCameraLinearTwist(const Eigen::Vector3d& trackingcamera_v);
     void setCameraAngularTwist(const Eigen::Vector3d& trackingcamera_omega);
@@ -142,13 +142,13 @@ public:
     void setCameraTwistCovariance(const Eigen::Matrix6d& cov);
 
     // Gets
-    const Eigen::Isometry3d& getBasePose();
+    const Eigen::Isometry3d& getBasePoseInOdom();
     const Eigen::Vector6d& getBaseTwist();
     Eigen::Vector3d getBaseLinearTwist();
     Eigen::Vector3d getBaseAngularTwist();
     Eigen::Matrix6d getBasePoseCovariance();
     Eigen::Matrix6d getBaseTwistCovariance();
-    const Eigen::Vector6d &getBasePose6d();
+    const Eigen::Vector6d &getBasePose6dInOdom();
 
     void update();
 
@@ -181,11 +181,11 @@ public:
 
     void setContacts(const std::vector<bool> &foot_contacts, std::vector<double> &foot_height);
 
-    const Eigen::Isometry3d& getBasefootInBase();
+    const Eigen::Isometry3d& getBasefootPoseInBase();
 
-    const Eigen::Isometry3d& getBasefootInOdom();
+    const Eigen::Isometry3d& getBasefootPoseInOdom();
 
-    void setBaseInOdom(const Eigen::Isometry3d& pose);
+    void setBasePoseInOdom(const Eigen::Isometry3d& pose);
 
     void update();
 

@@ -127,13 +127,6 @@ void OdomPublisher::updateCamera(const unsigned int &camera_id, const nav_msgs::
 {
   tmp_isometry3d_.translation() = Eigen::Vector3d(odom_msg->pose.pose.position.x,odom_msg->pose.pose.position.y,odom_msg->pose.pose.position.z);
   tmp_isometry3d_.linear() = Eigen::Quaterniond(odom_msg->pose.pose.orientation.w,odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z).toRotationMatrix();
-
-  // Apply initial robot height offset
-  if(initial_height_offset_on_)
-  {
-    tmp_isometry3d_.translation().z() += initial_height_;
-  }
-
   tf2::fromMsg(odom_msg->twist.twist, tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);
@@ -264,6 +257,10 @@ void OdomPublisher::multiCameraCallback(const nav_msgs::Odometry::ConstPtr& odom
   odom_T_base_.translation() = tmp_vector6d_.head(3);
   odom_T_base_.linear() = rpyToRot(tmp_vector6d_.tail(3));
 
+  // Apply initial robot height offset
+  if(initial_height_offset_on_)
+    odom_T_base_.translation().z() += initial_height_;
+
   // Twist
   tmp_vector6d_ =  weightedArithmeticMean(camera_estimators_[0]->getBaseTwist(),camera_estimators_[1]->getBaseTwist(),
       camera_estimators_[0]->getBaseTwistCovariance(),camera_estimators_[1]->getBaseTwistCovariance());
@@ -302,6 +299,10 @@ void OdomPublisher::singleCameraCallback(const nav_msgs::Odometry::ConstPtr& odo
   updateCamera(0,odom_msg);
 
   odom_T_base_ = camera_estimators_[0]->getBasePose();
+
+  // Apply initial robot height offset
+  if(initial_height_offset_on_)
+    odom_T_base_.translation().z() += initial_height_;
 
   if(basefoot_estimation_on_)
   {

@@ -23,6 +23,7 @@
     <arg name="artifacts_mapping" default="false" />
     <arg name="command_vel" default="" />
     <arg name="odom_twist_in_local_frame" default="false" />
+    <arg name="initial_height_offset" default="false" />
 
     <!-- Convert from PointCould2 to Laserscan -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">

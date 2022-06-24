@@ -71,6 +71,8 @@ protected:
   std::string odom_frame_id_;
   std::string odom_topic_;
   bool basefoot_estimation_on_;
+  bool initial_height_offset_on_;
+  double initial_height_;
 
   ros::NodeHandle nh_;
   ros::Subscriber single_camera_sub_;
@@ -87,7 +89,6 @@ protected:
   ros::Time basefoot_pub_t_;
   ros::Time basefoot_pub_t_prev_;
   std::vector<std::string> contact_names_;
-  double initial_height_;
 
   std::vector<bool> contacts_;
   std::vector<double> heights_;

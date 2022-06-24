@@ -36,6 +36,7 @@ void eigenToCovariance(const Eigen::Matrix6d& in, boost::array<double, 36>& out)
 
 OdomPublisher::OdomPublisher(ros::NodeHandle &nh)
   : basefoot_estimation_on_(false)
+  , initial_height_offset_on_(false)
   , initial_height_(0.0)
   , tf_listener_(tf_buffer_)
 {
@@ -49,16 +50,19 @@ void OdomPublisher::init()
   std::vector<std::string> trackingcamera_topics;
   std::string base_frame_id;
   bool twist_in_local_frame;
+  bool initial_height_offset;
   std::vector<std::string> contact_names;
   nh_.getParam("trackingcamera_topics", trackingcamera_topics);
   nh_.getParam("base_frame_id", base_frame_id);
   nh_.getParam("twist_in_local_frame", twist_in_local_frame);
   nh_.getParam("contact_names", contact_names);
+  nh_.getParam("initial_height_offset", initial_height_offset);
 
-  base_frame_id_     = base_frame_id;
-  basefoot_frame_id_ = "base_footprint";// FIXME
-  odom_frame_id_     = "odom";          // FIXME
-  odom_topic_        = "/odom";         // FIXME
+  base_frame_id_            = base_frame_id;
+  basefoot_frame_id_        = "base_footprint";// FIXME
+  odom_frame_id_            = "odom";          // FIXME
+  odom_topic_               = "/odom";         // FIXME
+  initial_height_offset_on_ = initial_height_offset;
 
   odom_publisher_ = nh_.advertise<nav_msgs::Odometry>(odom_topic_,20);
 
@@ -121,6 +125,13 @@ void OdomPublisher::updateCamera(const unsigned int &camera_id, const nav_msgs::
 {
   tmp_isometry3d_.translation() = Eigen::Vector3d(odom_msg->pose.pose.position.x,odom_msg->pose.pose.position.y,odom_msg->pose.pose.position.z);
   tmp_isometry3d_.linear() = Eigen::Quaterniond(odom_msg->pose.pose.orientation.w,odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z).toRotationMatrix();
+
+  // Apply initial robot height offset
+  if(initial_height_offset_on_)
+  {
+    tmp_isometry3d_.translation().z() += initial_height_;
+  }
+
   tf2::fromMsg(odom_msg->twist.twist, tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraTwist(tmp_vector6d_);
   camera_estimators_[camera_id]->setCameraPose(tmp_isometry3d_);

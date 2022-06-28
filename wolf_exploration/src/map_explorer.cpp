@@ -195,7 +195,6 @@ void MapExplorer::makePlan()
       if (ros::Time::now() - last_progress_ > progress_timeout_) {
         frontier_blacklist_.push_back(target_position);
         ROS_INFO_NAMED(CLASS_NAME,"Adding current goal to black list");
-        makePlan();
         continue;
       }
 
@@ -210,13 +209,21 @@ void MapExplorer::makePlan()
       goal.target_pose.pose.orientation.w = 1.;
       goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
       goal.target_pose.header.stamp = ros::Time::now();
-      move_base_client_.sendGoal(
-            goal, [this, target_position](
-            const actionlib::SimpleClientGoalState& status,
-            const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status, result, target_position);
-      });
+
+      move_base_client_.sendGoal(goal);
+
+      move_base_client_.waitForResult(progress_timeout_);
+
+      auto status = move_base_client_.getState();
+
+      ROS_INFO_NAMED(CLASS_NAME,"Reached exploration goal with status: %s", status.toString().c_str());
+      if (status == actionlib::SimpleClientGoalState::ABORTED)
+        frontier_blacklist_.push_back(goal.target_pose.pose.position);
+      else if (status == actionlib::SimpleClientGoalState::SUCCEEDED)
+        ROS_DEBUG_NAMED(CLASS_NAME,"Reached goal with status: %s", status.toString().c_str());
+
       ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+
     } // running_
 
     ros::Duration(1. / planner_frequency_).sleep();

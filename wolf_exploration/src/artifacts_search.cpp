@@ -202,7 +202,7 @@ void ArtifactsSearch::makePlan()
       if (status == actionlib::SimpleClientGoalState::ABORTED || status == actionlib::SimpleClientGoalState::SUCCEEDED)
         centroid_blacklist_.push_back(goal.target_pose.pose.position);
 
-      ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send new exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
+      ROS_INFO_STREAM_NAMED(CLASS_NAME,"Send exploration goal at (" << target_position.x << ", " << target_position.y << ", " << target_position.z <<")" );
 
       mtx_.unlock();
     } // running_

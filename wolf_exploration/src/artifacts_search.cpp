@@ -13,14 +13,8 @@ namespace wolf_exploration
 {
 
 ArtifactsSearch::ArtifactsSearch()
-  : converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons")
-  , private_nh_("~")
-  , tf_listener_(ros::Duration(10.0))
-  , prev_distance_(0)
-  , last_markers_count_(0)
-  , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
-  , move_base_client_("move_base")
-  , running_(false)
+  : MoveBasePlanner()
+  , converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons")
 {
   // load converter plugin from parameter server, otherwise set default
   std::string converter_plugin = "costmap_converter::CostmapToPolygonsDBSMCCH";

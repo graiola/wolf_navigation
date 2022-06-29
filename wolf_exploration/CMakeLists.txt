@@ -70,6 +70,7 @@ add_library(exploration_tools
   src/frontier_search.cpp
   src/artifacts_search.cpp
   src/map_explorer.cpp
+  src/move_base_planner.cpp
 )
 add_dependencies(exploration_tools ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(exploration_tools ${catkin_LIBRARIES})

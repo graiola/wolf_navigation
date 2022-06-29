@@ -171,7 +171,7 @@ void MapExplorer::makePlan()
         visualizeFrontiers(frontiers);
       }
 
-      // find non blacklisted frontier
+      // find FIRST non blacklisted frontier
       auto frontier =
           std::find_if_not(frontiers.begin(), frontiers.end(),
                            [this](const frontier_exploration::Frontier& f) {

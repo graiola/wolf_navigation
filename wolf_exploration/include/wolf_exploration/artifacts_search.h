@@ -30,12 +30,12 @@ protected:
 
   virtual bool makeGoal(const geometry_msgs::Pose& robot_pose, move_base_msgs::MoveBaseGoal& goal, double& goal_distance);
 
-  void publishAsMarker(const std::vector<geometry_msgs::PolygonStamped>& polygonStamped, ros::Publisher& marker_pub);
-  void publishAsMarker(const std::vector<geometry_msgs::Point>& points, ros::Publisher& marker_pub);
-  void publishAsMarker(const costmap_converter::ObstacleArrayMsg& obstacles, ros::Publisher& marker_pub);
+  void visualizePolygons();
 
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> converter_loader_;
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> converter_;
+  std::vector<geometry_msgs::Point> centroids_;
+  costmap_converter::ObstacleArrayMsg obstacles_;
 
   ros::Subscriber costmap_sub_;
   ros::Subscriber costmap_update_sub_;

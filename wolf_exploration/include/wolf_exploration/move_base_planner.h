@@ -11,6 +11,38 @@
 
 #include "wolf_exploration/costmap_client.h"
 
+#define TOL 0.01
+
+inline static double dist(const geometry_msgs::Point& one,
+                          const geometry_msgs::Point& two)
+{
+  double dx = one.x - two.x;
+  double dy = one.y - two.y;
+  double dist = sqrt(dx * dx + dy * dy);
+  return dist;
+}
+
+inline static double dist(const move_base_msgs::MoveBaseGoal& one,
+                          const move_base_msgs::MoveBaseGoal& two)
+{
+  return dist(one.target_pose.pose.position,two.target_pose.pose.position);
+}
+
+inline static bool operator==(const geometry_msgs::Point& one,
+                              const geometry_msgs::Point& two)
+{
+  double dx = one.x - two.x;
+  double dy = one.y - two.y;
+  double dist = sqrt(dx * dx + dy * dy);
+  return dist < TOL;
+}
+
+inline static bool operator==(const move_base_msgs::MoveBaseGoal& one,
+                              const move_base_msgs::MoveBaseGoal& two)
+{
+  return (one.target_pose.pose.position == two.target_pose.pose.position);
+}
+
 namespace wolf_exploration {
 
 class MoveBasePlanner
@@ -46,6 +78,8 @@ public:
   void makePlan();
 
 protected:
+
+  void init();
 
   virtual bool makeGoal(const geometry_msgs::Pose& robot_pose, move_base_msgs::MoveBaseGoal& goal, double& goal_distance) = 0;
 

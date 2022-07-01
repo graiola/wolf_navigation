@@ -1,37 +1,5 @@
 #include "wolf_exploration/move_base_planner.h"
 
-#define TOL 0.01
-
-inline static double dist(const geometry_msgs::Point& one,
-                          const geometry_msgs::Point& two)
-{
-  double dx = one.x - two.x;
-  double dy = one.y - two.y;
-  double dist = sqrt(dx * dx + dy * dy);
-  return dist;
-}
-
-inline static double dist(const move_base_msgs::MoveBaseGoal& one,
-                          const move_base_msgs::MoveBaseGoal& two)
-{
-  return dist(one.target_pose.pose.position,two.target_pose.pose.position);
-}
-
-inline static bool operator==(const geometry_msgs::Point& one,
-                              const geometry_msgs::Point& two)
-{
-  double dx = one.x - two.x;
-  double dy = one.y - two.y;
-  double dist = sqrt(dx * dx + dy * dy);
-  return dist < TOL;
-}
-
-inline static bool operator==(const move_base_msgs::MoveBaseGoal& one,
-                              const move_base_msgs::MoveBaseGoal& two)
-{
-  return (one.target_pose.pose.position == two.target_pose.pose.position);
-}
-
 namespace wolf_exploration
 {
 
@@ -43,7 +11,6 @@ MoveBasePlanner::MoveBasePlanner()
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
   , running_(false)
 {
-
   // Color definition
   blue_.r = 0;
   blue_.g = 0;
@@ -61,16 +28,19 @@ MoveBasePlanner::MoveBasePlanner()
   private_nh_.param("progress_timeout", timeout, 30.0);
   progress_timeout_ = ros::Duration(timeout);
   private_nh_.param("visualize", visualize_, true);
-
-  ROS_INFO_NAMED(CLASS_NAME,"Waiting to connect to move_base server");
-  move_base_client_.waitForServer();
-  ROS_INFO_NAMED(CLASS_NAME,"Connected to move_base server");
-  ROS_INFO_NAMED(CLASS_NAME,"Planner in stand-by");
 }
 
 MoveBasePlanner::~MoveBasePlanner()
 {
   stop();
+}
+
+void MoveBasePlanner::init()
+{
+  ROS_INFO_NAMED(CLASS_NAME,"Waiting to connect to move_base server");
+  move_base_client_.waitForServer();
+  ROS_INFO_NAMED(CLASS_NAME,"Connected to move_base server");
+  ROS_INFO_NAMED(CLASS_NAME,"Planner in stand-by");
 }
 
 void MoveBasePlanner::start()
@@ -109,7 +79,7 @@ void MoveBasePlanner::makePlan()
       move_base_msgs::MoveBaseGoal goal;
       double goal_distance;
 
-      if(!makeGoal(robot_pose,goal,goal_distance))
+      if(!makeGoal(robot_pose,goal,goal_distance) && !goalOnBlacklist(goal))
       {
         ROS_INFO_NAMED(CLASS_NAME,"Can not create a new goal");
         stop();

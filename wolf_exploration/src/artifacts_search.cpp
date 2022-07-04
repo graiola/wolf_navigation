@@ -65,6 +65,8 @@ ArtifactsSearch::ArtifactsSearch()
     converter_->setCostmap2D(costmap_client_.getCostmap());
     //converter_->startWorker(ros::Rate(5), &map, true);
   }
+
+  init();
 }
 
 void ArtifactsSearch::costmapCallback(const nav_msgs::OccupancyGridConstPtr& msg)
@@ -185,8 +187,6 @@ void ArtifactsSearch::costmapUpdateCallback(const map_msgs::OccupancyGridUpdateC
   centroids_ = centroids;
 
   mtx_.unlock();
-
-
 
   if (obstacles_.obstacles.empty())
     return;

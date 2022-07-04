@@ -121,7 +121,6 @@ protected:
 
   std::vector<move_base_msgs::MoveBaseGoal> goals_;
   std::vector<move_base_msgs::MoveBaseGoal> goals_blacklist_;
-  std::vector<move_base_msgs::MoveBaseGoal> goals_visited_;
   move_base_msgs::MoveBaseGoal prev_goal_;
   double prev_distance_;
   std::string planner_name_;
@@ -136,9 +135,9 @@ protected:
 
   ros::Publisher goals_pub_;
 
-  std_msgs::ColorRGBA blue_; // In visited list
-  std_msgs::ColorRGBA red_; // In black list
-  std_msgs::ColorRGBA green_; // To visit
+  std_msgs::ColorRGBA blue_;
+  std_msgs::ColorRGBA red_;
+  std_msgs::ColorRGBA green_;
 
   Costmap2DClient costmap_client_;
 

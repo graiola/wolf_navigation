@@ -4,7 +4,7 @@ namespace wolf_exploration
 {
 
 MapExplorer::MapExplorer()
-  : MoveBasePlanner()
+  : MoveBasePlanner("map_explorer")
   , last_markers_count_(0)
 {
   double min_frontier_size;
@@ -100,7 +100,7 @@ bool MapExplorer::makeGoal(const geometry_msgs::Pose &robot_pose, move_base_msgs
   auto frontiers = search_.searchFrom(robot_pose.position);
   if (frontiers.empty())
   {
-    ROS_INFO_NAMED(CLASS_NAME,"No more frontiers left to explore");
+    ROS_INFO_NAMED(CLASS_NAME,"%s no more frontiers left to explore",planner_name_.c_str());
     return false;
   }
 
@@ -122,6 +122,8 @@ bool MapExplorer::makeGoal(const geometry_msgs::Pose &robot_pose, move_base_msgs
   goal.target_pose.pose.orientation.w = 1.;
   goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
   goal.target_pose.header.stamp = ros::Time::now();
+
+  goal_distance = frontier->min_distance;
 
   return true;
 }

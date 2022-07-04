@@ -3,15 +3,16 @@
 namespace wolf_exploration
 {
 
-MoveBasePlanner::MoveBasePlanner()
+MoveBasePlanner::MoveBasePlanner(std::string planner_name, std::string move_base_client_name)
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , prev_distance_(0)
-  , move_base_client_("move_base")
+  , planner_name_(planner_name)
+  , move_base_client_(move_base_client_name)
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
   , running_(false)
 {
-  // Color definition
+  // Colors definition
   blue_.r = 0;
   blue_.g = 0;
   blue_.b = 1.0;
@@ -37,16 +38,16 @@ MoveBasePlanner::~MoveBasePlanner()
 
 void MoveBasePlanner::init()
 {
-  ROS_INFO_NAMED(CLASS_NAME,"Waiting to connect to move_base server");
+  ROS_INFO_NAMED(CLASS_NAME,"%s waiting to connect to move_base server",planner_name_.c_str());
   move_base_client_.waitForServer();
-  ROS_INFO_NAMED(CLASS_NAME,"Connected to move_base server");
-  ROS_INFO_NAMED(CLASS_NAME,"Planner in stand-by");
+  ROS_INFO_NAMED(CLASS_NAME,"%s connected to move_base server",planner_name_.c_str());
+  ROS_INFO_NAMED(CLASS_NAME,"%s in stand-by",planner_name_.c_str());
 }
 
 void MoveBasePlanner::start()
 {
   running_ = true;
-  ROS_INFO_NAMED(CLASS_NAME,"Planner started");
+  ROS_INFO_NAMED(CLASS_NAME,"%s started",planner_name_.c_str());
 }
 
 void MoveBasePlanner::stop()
@@ -54,14 +55,14 @@ void MoveBasePlanner::stop()
   running_ = false;
   move_base_client_.cancelAllGoals();
   goals_blacklist_.clear();
-  ROS_INFO_NAMED(CLASS_NAME,"Planner stopped");
+  ROS_INFO_NAMED(CLASS_NAME,"%s stopped",planner_name_.c_str());
 }
 
 void MoveBasePlanner::pause()
 {
   running_ = false;
   move_base_client_.cancelAllGoals();
-  ROS_INFO_NAMED(CLASS_NAME,"Planner paused");
+  ROS_INFO_NAMED(CLASS_NAME,"%s paused",planner_name_.c_str());
 }
 
 void MoveBasePlanner::makePlan()
@@ -81,7 +82,7 @@ void MoveBasePlanner::makePlan()
 
       if(!makeGoal(robot_pose,goal,goal_distance) && !goalOnBlacklist(goal))
       {
-        ROS_INFO_NAMED(CLASS_NAME,"Can not create a new goal");
+        ROS_INFO_NAMED(CLASS_NAME,"%s can not create a new goal",planner_name_.c_str());
         stop();
         continue;
       }
@@ -98,7 +99,7 @@ void MoveBasePlanner::makePlan()
       if (ros::Time::now() - last_progress_ > progress_timeout_)
       {
         goals_blacklist_.push_back(goal);
-        ROS_INFO_NAMED(CLASS_NAME,"Adding current goal to black list");
+        ROS_INFO_NAMED(CLASS_NAME,"%s adding current goal to black list",planner_name_.c_str());
         continue;
       }
       // we don't need to do anything if we still pursuing the same goal
@@ -111,7 +112,7 @@ void MoveBasePlanner::makePlan()
       move_base_client_.waitForResult(progress_timeout_);
       auto status = move_base_client_.getState();
 
-      ROS_INFO_NAMED(CLASS_NAME,"Reached goal with status: %s", status.toString().c_str());
+      ROS_INFO_NAMED(CLASS_NAME,"%s reached goal with status: %s", planner_name_.c_str(), status.toString().c_str());
       if (status == actionlib::SimpleClientGoalState::ABORTED || status == actionlib::SimpleClientGoalState::SUCCEEDED)
         goals_blacklist_.push_back(goal);
 

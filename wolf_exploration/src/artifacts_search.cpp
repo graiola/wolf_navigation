@@ -4,7 +4,7 @@ namespace wolf_exploration
 {
 
 ArtifactsSearch::ArtifactsSearch()
-  : MoveBasePlanner()
+  : MoveBasePlanner("artifacts_search")
   , converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons")
 {
   // load converter plugin from parameter server, otherwise set default
@@ -17,11 +17,11 @@ ArtifactsSearch::ArtifactsSearch()
   }
   catch(const pluginlib::PluginlibException& ex)
   {
-    ROS_ERROR_NAMED(CLASS_NAME,"The plugin failed to load for some reason. Error: %s", ex.what());
+    ROS_ERROR_NAMED(CLASS_NAME,"%s the plugin failed to load for some reason. Error: %s", planner_name_.c_str(), ex.what());
     ros::shutdown();
   }
 
-  ROS_INFO_STREAM_NAMED(CLASS_NAME,"Standalone costmap converter:" << converter_plugin << " loaded.");
+  ROS_INFO_STREAM_NAMED(CLASS_NAME,"standalone costmap converter:" << converter_plugin << " loaded.");
 
   double timeout;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
@@ -71,13 +71,13 @@ ArtifactsSearch::ArtifactsSearch()
 
 void ArtifactsSearch::costmapCallback(const nav_msgs::OccupancyGridConstPtr& msg)
 {
-  ROS_INFO_ONCE_NAMED(CLASS_NAME,"Got first costmap callback. This message will be printed once");
+  ROS_INFO_ONCE_NAMED(CLASS_NAME,"%s got first costmap callback. This message will be printed once",planner_name_.c_str());
 
   mtx_.lock();
 
   if (msg->info.width != costmap_client_.getCostmap()->getSizeInCellsX() || msg->info.height != costmap_client_.getCostmap()->getSizeInCellsY() || msg->info.resolution != costmap_client_.getCostmap()->getResolution())
   {
-    ROS_INFO("New map format, resizing and resetting map...");
+    ROS_INFO_NAMED(CLASS_NAME,"%s new map format, resizing and resetting map...",planner_name_.c_str());
     costmap_client_.getCostmap()->resizeMap(msg->info.width, msg->info.height, msg->info.resolution, msg->info.origin.position.x, msg->info.origin.position.y);
   }
   else
@@ -231,6 +231,8 @@ bool ArtifactsSearch::makeGoal(const geometry_msgs::Pose &robot_pose, move_base_
 
   goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
   goal.target_pose.header.stamp = ros::Time::now();
+
+  goal_distance = min_dist;
 
 }
 

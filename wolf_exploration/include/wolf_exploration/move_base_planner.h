@@ -78,8 +78,8 @@ public:
 
   typedef std::shared_ptr<MoveBasePlanner> Ptr;
 
-  MoveBasePlanner();
-  ~MoveBasePlanner();
+  MoveBasePlanner(std::string planner_name, std::string move_base_client_name = "move_base");
+  virtual ~MoveBasePlanner();
 
   /**
    * @brief  Start the planner
@@ -121,8 +121,10 @@ protected:
 
   std::vector<move_base_msgs::MoveBaseGoal> goals_;
   std::vector<move_base_msgs::MoveBaseGoal> goals_blacklist_;
+  std::vector<move_base_msgs::MoveBaseGoal> goals_visited_;
   move_base_msgs::MoveBaseGoal prev_goal_;
   double prev_distance_;
+  std::string planner_name_;
   ros::Time last_progress_;
 
   // parameters

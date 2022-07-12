@@ -12,7 +12,7 @@
     <arg name="engine" default="ode" />
     <arg name="launch_controller" default="true" />
     <arg name="local_planner" default="dwa_local_planner/DWAPlannerROS" />
-    <arg name="global_planner" default="navfn/NavfnROS"/>
+    <arg name="global_planner" default="global_planner/GlobalPlanner"/>
     <arg name="global_frame" default="map"/>
     <arg name="odom_frame" default="odom"/>
     <arg name="base_frame" default="base_footprint"/>

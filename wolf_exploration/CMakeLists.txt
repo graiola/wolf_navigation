@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## Find OPTIONAL libraries
-find_package(artifacts_mapping QUIET)
+find_package(artifacts_mapping_msgs QUIET)
 find_package(rt_gui QUIET)
 
 if(${rt_gui_FOUND})
@@ -60,7 +60,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${rt_gui_INCLUDE_DIRS}
-  ${artifacts_mapping_INCLUDE_DIRS}
+  ${artifacts_mapping_msgs_INCLUDE_DIRS}
   include
 )
 
@@ -80,8 +80,8 @@ add_dependencies(map_explorer_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 target_link_libraries(map_explorer_node exploration_tools ${catkin_LIBRARIES} ${rt_gui_LIBRARIES})
 
 
-if(${artifacts_mapping_FOUND})
-    message("Found artifacts_mapping, compiling artifacts_search_node for wolf_navigation.")
+if(${artifacts_mapping_msgs_FOUND})
+    message("Found artifacts_mapping_msgs, compiling artifacts_search_node for wolf_navigation.")
 
     add_executable(artifacts_search_node src/artifacts_search_node.cpp)
     add_dependencies(artifacts_search_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

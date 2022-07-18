@@ -15,7 +15,7 @@
     <arg name="odom_frame" default="odom"/>
     <arg name="base_frame" default="base_footprint"/>
     <arg name="scan_topic" default="scan"/>
-    <arg name="velodyne_pointcloud_topic" default="velodyne_pointcloud"/>
+    <arg name="velodyne_pointcloud_topic" default="velodyne_points"/>
     <arg name="depth_camera_name" default="d435"/>
     <arg name="robot_params" default="" />
     <arg name="map_file" default="$(find wolf_navigation_utils)/maps/$(arg world_name).yaml" />

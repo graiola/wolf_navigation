@@ -25,7 +25,7 @@
 #include <rt_gui/rt_gui_client.h>
 #endif
 #include <ros/ros.h>
-#include <artifacts_mapping/addClass.h>
+#include <artifacts_mapping_msgs/addClass.h>
 #include <std_srvs/Empty.h>
 
 #define NODE_NAME "artifacts_search_node"
@@ -40,7 +40,7 @@ static int _timeout = 10;
 
 void searchArtifact(std::string artifact_name)
 {
-  artifacts_mapping::addClass srv;
+  artifacts_mapping_msgs::addClass srv;
   srv.request.value = artifact_name;
   if(ros::service::waitForService(_add_class_srv,_timeout))
   {

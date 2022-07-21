@@ -44,6 +44,7 @@
     <!-- Run gmapping slam -->
     <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen" if="$(arg mapping)">
        <remap from="scan" to="$(arg scan_topic)" />
+       <param name="map_update_interval" value="1.0"        />
        <param name="map_frame"  value="$(arg global_frame)" />
        <param name="base_frame" value="$(arg base_frame)"   />
        <param name="odom_frame" value="$(arg odom_frame)"   />
